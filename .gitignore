@@ -1,0 +1,32 @@
+# Next.js
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Env files
+.env*.local
+.env
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Prisma
+prisma/migrations/
+
+# Système Claude Code v2
+.claude/health-report.json
+.claude/health-history/
+.claude/cache/
+.claude/.local/

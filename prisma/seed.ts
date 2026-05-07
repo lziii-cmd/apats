@@ -122,16 +122,16 @@ async function main() {
   });
   console.log("✓ Configuration globale");
 
-  // 5. Admin système initial (mot de passe temporaire — à changer impérativement)
-  const tempPassword = "ChangeMe123!";
+  // 5. Admin système initial
+  const adminPassword = "APATS2026";
   const passwordHash = crypto
     .createHash("sha256")
-    .update(tempPassword)
+    .update(adminPassword)
     .digest("hex");
 
   await prisma.user.upsert({
     where: { email: "admin@apats.ensmg" },
-    update: {},
+    update: { passwordHash }, // met à jour le mot de passe à chaque seed
     create: {
       email: "admin@apats.ensmg",
       name: "Admin Système",
@@ -140,8 +140,7 @@ async function main() {
       locale: "fr",
     },
   });
-  console.log("✓ Compte admin initial (admin@apats.ensmg / ChangeMe123!)");
-  console.log("⚠️  Changer le mot de passe admin immédiatement après le premier login !");
+  console.log("✓ Compte admin initial (admin@apats.ensmg / APATS2026)");
 
   // 6. Membres de l'amicale (liste AG constitutive)
   const memberPasswordHash = crypto

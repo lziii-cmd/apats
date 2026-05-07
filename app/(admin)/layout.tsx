@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           Admin Système
         </span>
         <Link
-          href="/admin/admin"
+          href="/admin"
           className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
         >
           {t("dashboard")}

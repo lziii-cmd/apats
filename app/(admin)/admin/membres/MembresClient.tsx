@@ -12,7 +12,7 @@ type Membre = {
   name: string;
   email: string;
   locale: string;
-  createdAt: string;
+  createdAt: Date;
   category: Category | null;
   mandates: Mandate[];
 };

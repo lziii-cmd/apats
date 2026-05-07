@@ -34,7 +34,33 @@
   "admin": {
     "nav": {
       "dashboard": "Dashboard",
+      "membres": "Members",
       "postes": "Roles & Permissions"
+    },
+    "membres": {
+      "title": "Members",
+      "add": "Add member",
+      "name": "Full name",
+      "email": "Email",
+      "category": "Category",
+      "post": "Role (optional)",
+      "noPost": "— No role —",
+      "locale": "Language",
+      "active": "Active",
+      "inactive": "Deactivated",
+      "noMembers": "No members.",
+      "tempPassword": "Temporary password",
+      "tempPasswordNote": "Save it, it won't be shown again.",
+      "editTitle": "Edit member",
+      "createSuccess": "Member created successfully.",
+      "updateSuccess": "Member updated.",
+      "emailConflict": "This email is already in use.",
+      "monthlyFee": "Monthly fee",
+      "fcfa": "FCFA",
+      "mandateActive": "Active mandate until",
+      "noMandate": "No role",
+      "deactivate": "Deactivate",
+      "activate": "Reactivate"
     },
     "postes": {
       "title": "Roles & Permissions",

@@ -34,7 +34,33 @@
   "admin": {
     "nav": {
       "dashboard": "Tableau de bord",
+      "membres": "Membres",
       "postes": "Postes & Permissions"
+    },
+    "membres": {
+      "title": "Membres",
+      "add": "Ajouter un membre",
+      "name": "Nom complet",
+      "email": "Email",
+      "category": "Catégorie",
+      "post": "Poste (optionnel)",
+      "noPost": "— Sans poste —",
+      "locale": "Langue",
+      "active": "Actif",
+      "inactive": "Désactivé",
+      "noMembers": "Aucun membre.",
+      "tempPassword": "Mot de passe provisoire",
+      "tempPasswordNote": "Notez-le, il ne sera plus affiché.",
+      "editTitle": "Modifier le membre",
+      "createSuccess": "Membre créé avec succès.",
+      "updateSuccess": "Membre mis à jour.",
+      "emailConflict": "Cet email est déjà utilisé.",
+      "monthlyFee": "Cotisation mensuelle",
+      "fcfa": "FCFA",
+      "mandateActive": "Mandat actif jusqu'au",
+      "noMandate": "Aucun poste",
+      "deactivate": "Désactiver",
+      "activate": "Réactiver"
     },
     "postes": {
       "title": "Postes & Permissions",

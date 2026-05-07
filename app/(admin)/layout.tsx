@@ -19,6 +19,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {t("dashboard")}
         </Link>
         <Link
+          href="/admin/membres"
+          className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
+        >
+          {t("membres")}
+        </Link>
+        <Link
           href="/admin/postes"
           className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
         >

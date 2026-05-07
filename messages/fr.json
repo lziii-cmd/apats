@@ -35,7 +35,20 @@
     "nav": {
       "dashboard": "Tableau de bord",
       "membres": "Membres",
+      "categories": "Catégories",
       "postes": "Postes & Permissions"
+    },
+    "categories": {
+      "title": "Catégories de membres",
+      "add": "Ajouter une catégorie",
+      "name": "Nom",
+      "monthlyFee": "Cotisation mensuelle (FCFA)",
+      "members": "membres",
+      "noCategories": "Aucune catégorie.",
+      "deleteConfirm": "Supprimer la catégorie \"{name}\" ?",
+      "nameConflict": "Ce nom est déjà utilisé.",
+      "deleteBlocked": "Impossible : des membres utilisent cette catégorie.",
+      "editTitle": "Modifier la catégorie"
     },
     "membres": {
       "title": "Membres",

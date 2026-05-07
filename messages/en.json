@@ -35,7 +35,20 @@
     "nav": {
       "dashboard": "Dashboard",
       "membres": "Members",
+      "categories": "Categories",
       "postes": "Roles & Permissions"
+    },
+    "categories": {
+      "title": "Member categories",
+      "add": "Add category",
+      "name": "Name",
+      "monthlyFee": "Monthly fee (FCFA)",
+      "members": "members",
+      "noCategories": "No categories.",
+      "deleteConfirm": "Delete category \"{name}\"?",
+      "nameConflict": "This name is already in use.",
+      "deleteBlocked": "Cannot delete: members are using this category.",
+      "editTitle": "Edit category"
     },
     "membres": {
       "title": "Members",

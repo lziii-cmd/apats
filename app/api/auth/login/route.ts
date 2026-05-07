@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { signToken, COOKIE_NAME } from "@/lib/auth";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
-import { LOCALE_COOKIE } from "@/i18n/request";
+import { LOCALE_COOKIE } from "@/i18n/config";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";

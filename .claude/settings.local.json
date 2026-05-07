@@ -15,7 +15,11 @@
       "Bash(findstr \"LISTENING\")",
       "Bash(taskkill /PID 30532 /F)",
       "Bash(mkdir -p \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\\\\app\\\\api\\\\admin\\\\posts\\\\[id]\")",
-      "Bash(mkdir -p \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\\\\app\\\\api\\\\admin\\\\posts\\\\[id]\\\\permissions\")"
+      "Bash(mkdir -p \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\\\\app\\\\api\\\\admin\\\\posts\\\\[id]\\\\permissions\")",
+      "Bash(npx next *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

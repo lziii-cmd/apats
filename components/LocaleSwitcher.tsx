@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/request";
+import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/config";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   fr: "🇫🇷 Français",

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/request";
+import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/config";
 
 // PATCH /api/me/locale — changer la langue de l'utilisateur connecté
 export async function PATCH(req: NextRequest) {

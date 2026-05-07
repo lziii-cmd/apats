@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 
 type Category = { id: string; name: string; monthlyFee: number };
 type Post = { id: string; name: string };
-type Mandate = { id: string; startDate: string; endDate: string; post: Post };
+type Mandate = { id: string; startDate: Date; endDate: Date; post: Post };
 type Membre = {
   id: string;
   name: string;

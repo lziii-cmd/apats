@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(pnpm --version)",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "PowerShell(Get-Process -Id 22440)",
+      "PowerShell(Get-Process -Id 10252)",
+      "PowerShell(Get-Process | Where-Object { $_.Id -in @\\(22440, 10252\\) } | Select-Object Name, Id)",
+      "PowerShell(cd D:\\\\PROJETS\\\\ENSMG\\\\APATS; npm run dev -- -p 3001 2>&1)",
+      "Bash(npm run *)",
+      "Bash(npx prisma *)",
+      "Bash(npx vitest *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":3001\")",
+      "Bash(findstr \"LISTENING\")",
+      "Bash(taskkill /PID 30532 /F)",
+      "Bash(mkdir -p \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\\\\app\\\\api\\\\admin\\\\posts\\\\[id]\")",
+      "Bash(mkdir -p \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\\\\app\\\\api\\\\admin\\\\posts\\\\[id]\\\\permissions\")"
     ]
   }
 }

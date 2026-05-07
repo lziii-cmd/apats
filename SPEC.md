@@ -37,15 +37,15 @@
 
 - **Type d'application** : Progressive Web App (PWA)
 - **Langues interface** : Français + Anglais (switch utilisateur)
-- **Langage(s) principal(aux)** : [À DÉCIDER — voir F-001]
-- **Framework frontend** : [À DÉCIDER — voir F-001]
-- **Backend / API** : [À DÉCIDER — voir F-001]
-- **Base de données** : [À DÉCIDER — voir F-001]
-- **Stockage fichiers** : Upload PDF (PV de réunion)
+- **Langage(s) principal(aux)** : TypeScript 5 (strict)
+- **Framework frontend** : Next.js 16 (App Router)
+- **Backend / API** : Next.js API Routes
+- **Base de données** : PostgreSQL via Supabase + Prisma 6
 - **Notifications** : In-app + Email
 - **Infrastructure / hébergement** : [À COMPLÉTER]
 - **CI/CD** : [À COMPLÉTER]
-- **Outils dev** : [À définir lors du scaffolding]
+- **Outils dev** : ESLint 9, Vitest 3, ts-node
+- **Stockage fichiers** : Upload PDF (PV de réunion)
 
 ## 4. CONVENTIONS
 
@@ -59,13 +59,26 @@
 - **Tests** : [À COMPLÉTER après scaffolding]
 - **Commits** : Conventional Commits avec scopes : [à définir]
 - **Branches** : feat/, fix/, refactor/, chore/ — branche principale : main
+- **ORM / Migrations** : Prisma 6 — migrations dans `prisma/migrations/`, seed dans `prisma/seed.ts`
+- **Seed** : idempotent (upsert), exécutable via `npm run db:seed`
+- **Enums Prisma** : importés depuis `@prisma/client` dans les tests et le code applicatif
 
 ## 5. DÉCISIONS ARCHITECTURALES (ADR)
 
 > Aucune décision structurante encore formalisée.
 > Le premier ADR concernera le choix de stack (frontend + backend + BDD).
 
-[Premier ADR à créer lors du scaffolding — voir F-001 dans BACKLOG.md]
+### ADR-001 — Stack technique : Next.js 16 + Supabase + Prisma
+- **Date** : 2026-05-03
+- **Statut** : accepté
+- **Contexte** : Application PWA bilingue pour association de < 50 membres,
+  développeur solo avec successeur à prévoir.
+- **Décision** : Next.js 16 (App Router) + PostgreSQL via Supabase + Prisma 6,
+  déploiement Vercel ou Render.
+- **Alternatives écartées** : Nuxt + NestJS (deux projets à maintenir) ;
+  React + FastAPI (deux langages).
+- **Conséquences** : monorepo TypeScript, zéro administration serveur,
+  plan gratuit suffisant pour < 50 utilisateurs.
 
 ## 6. FONCTIONNALITÉS CŒUR
 

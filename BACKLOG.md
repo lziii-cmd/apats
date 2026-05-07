@@ -89,7 +89,7 @@ F-001 (scaffolding)
 ## FEATURES — M1 : FONDATIONS
 
 ### F-001 — Scaffolding initial
-- **Statut** : à faire
+- **Statut** : livré, à valider
 - **IDs CDC** : N/A (technique)
 - **Description** : Init repo git, structure de dossiers (Next.js App Router + Prisma + PostgreSQL/Supabase), config ESLint/Prettier/TypeScript strict, CI minimale (GitHub Actions : lint + typecheck), README de base, `.env.example`, premier commit propre.
 - **Dépendances** : aucune
@@ -97,6 +97,7 @@ F-001 (scaffolding)
 - **Tier** : NORMAL
 - **Risques** : stack définie (Next.js + PostgreSQL via Supabase, déploiement Vercel/Render). Toute modification de stack après cette feature est coûteuse.
 - **Acteurs concernés** : développeur
+- **Commit** : `e02ffbc` — branche `master`
 
 ---
 

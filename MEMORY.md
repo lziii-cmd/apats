@@ -1,6 +1,6 @@
 # MEMORY.md — Mémoire du projet
 
-**Dernière mise à jour** : 2026-05-07
+**Dernière mise à jour** : 2026-05-08
 
 ---
 
@@ -10,22 +10,37 @@
 > (procédure de reconnaissance dans CLAUDE.md). Sert à détecter les dérives.
 
 - **Branche** : master
-- **Dernier commit connu** : à compléter après premier commit git
+- **Dernier commit connu** : d6e5dde — fix(i18n): add NextIntlClientProvider to root layout
 - **Hash dépendances** : package-lock.json présent
 - **Hash CDC.md** : 4c20839b4819a84856ef3602165314edf1b0024de78fab05d3a016427a78d477
 - **Dossiers top-level** : .claude/, app/, lib/, prisma/, public/
-- **Date de la vérification** : 2026-05-07T12:35Z
+- **Date de la vérification** : 2026-05-08T01:30Z
 
 ---
 
 ## CONTEXTE ACTUEL
 
-- **Où on en est** : F-001 à F-004 livrés. RBAC dynamique en place. Prêt pour F-005 (mandats) et F-009 (i18n) en parallèle.
-- **Dernière fonctionnalité travaillée** : F-004 — RBAC dynamique
-- **Statut de cette feature** : livré, à valider
-- **Prochaine fonctionnalité prévue** : F-005 — Gestion des mandats + F-009 — i18n FR/EN
-- **Problèmes ouverts** : timeout Wave/OM sans réponse (à trancher avant F-011) ; catégories de dépenses trésorerie fixes ou configurables (à trancher avant F-016) ; clé Resend à configurer avant F-006
+- **Où on en est** : F-001 à F-009 livrés. M1 complet sauf F-008 (config générale). App déployée sur Vercel et fonctionnelle.
+- **Dernière fonctionnalité travaillée** : fix NextIntlClientProvider (root layout)
+- **Statut de cette feature** : livré, à valider en production
+- **Prochaine fonctionnalité prévue** : F-008 — Configuration générale (S, ½j)
+- **Problèmes ouverts** :
+  - Colonne `mandateDurationDays` à ajouter manuellement dans Neon (SQL ci-dessous)
+  - Mot de passe admin à mettre à jour dans Neon (SQL ci-dessous)
+  - Clé Resend non configurée (reset mdp par email non fonctionnel)
+  - Timeout Wave/OM sans réponse (à trancher avant F-011)
+  - Catégories de dépenses trésorerie fixes ou configurables (à trancher avant F-016)
 - **Blocages** : aucun
+
+### SQL à exécuter dans Neon (en attente)
+```sql
+ALTER TABLE "AppConfig"
+ADD COLUMN IF NOT EXISTS "mandateDurationDays" INTEGER NOT NULL DEFAULT 730;
+
+UPDATE "User"
+SET "passwordHash" = '61706f4d1b0ef9d5bc29bca7a7e506e07f2923bfae84d6da887a57c9296d58a1'
+WHERE email = 'admin@apats.ensmg';
+```
 
 ---
 
@@ -35,20 +50,20 @@
 |------|----------------|---------|--------|------------------|
 | 2026-05-03 | Bootstrap + initialisation SPEC/MEMORY | N/A | livré | — |
 | 2026-05-03 | spec-import : génération BACKLOG.md (19 features) | N/A | livré | — |
-| 2026-05-07 | F-001 — Scaffolding initial | N/A | livré, à valider | master |
+| 2026-05-07 | F-001 — Scaffolding initial | N/A | livré, à valider | master / e02ffbc |
 | 2026-05-07 | F-002 — Base de données & modèles fondamentaux | §4.2, §7, §9 | livré, à valider | master |
 | 2026-05-07 | F-003 — Authentification | §5.1 | livré, à valider | master |
 | 2026-05-07 | F-004 — RBAC dynamique | §4.2, §5.2.2 | livré, à valider | master |
+| 2026-05-08 | F-005 — Gestion des mandats | §5.2.3 | livré, à valider | master |
+| 2026-05-08 | F-009 — Internationalisation FR/EN | §7 | livré, à valider | master |
+| 2026-05-08 | F-006 — Admin : gestion des membres | §5.2.1, §5.2.3 | livré, à valider | master / 0ac6b76 |
+| 2026-05-08 | F-007 — Admin : catégories & types de contribution | §5.2.4 | livré, à valider | master / 8a81a4b |
 
 > Statuts possibles : `en cours` | `livré` | `livré, à valider` | `pause` | `abandonné`
 
 ---
 
 ## ÉCARTS ASSUMÉS (code ↔ CDC)
-
-> Tracés par la skill `spec-sync divergence`. Chaque écart est une décision
-> consciente de l'utilisateur. Le code et le CDC restent en désaccord
-> volontaire jusqu'à résolution future.
 
 | Date | ID CDC concerné | Écart | Raison | Validé par utilisateur le |
 |------|------------------|-------|--------|----------------------------|
@@ -57,9 +72,6 @@
 ---
 
 ## DÉCISIONS DE SESSION
-
-> Décisions techniques prises pendant le travail. Ce ne sont **PAS** encore
-> des ADR — l'utilisateur seul peut les promouvoir dans `SPEC.md > Section 5`.
 
 | Date | Décision provisoire | Pourquoi | À promouvoir en ADR ? |
 |------|---------------------|----------|------------------------|
@@ -71,6 +83,9 @@
 | 2026-05-07 | hasPermission DB-based (pas JWT) | Permissions modifiables en temps réel, incompatible avec cache JWT | Non |
 | 2026-05-07 | Neon choisi à la place de Supabase | Interface Supabase complexe pour le dev solo, Neon plus simple | Non |
 | 2026-05-07 | Email format membres : prénoms collés sans séparateur | Convention PV AG constitutive | Non |
+| 2026-05-08 | Mot de passe temporaire : aléatoire 8 chars affiché une fois | Compromis sécurité/praticité pour association < 50 membres | Non |
+| 2026-05-08 | proxy.ts = middleware Next.js 16 (pas middleware.ts) | Next.js 16 Turbopack exige proxy.ts + export fn proxy | Non |
+| 2026-05-08 | NextIntlClientProvider dans root layout | Requis pour useTranslations dans Client Components | Non |
 
 ---
 
@@ -81,26 +96,25 @@
 | 2026-05-07 | ts-node seed échoue sur Windows | Single quotes incompatibles PowerShell | Remplacé par tsx |
 | 2026-05-07 | prisma migrate dev bloque (non-interactif) | TTY requis | Remplacé par prisma db push |
 | 2026-05-07 | Next.js 16 middleware deprecated | Nouvelle API proxy | Renommé middleware.ts → proxy.ts, export fn → proxy |
-| 2026-05-07 | Conflit routes / entre (admin) et (app) | Deux page.tsx au même chemin | Déplacé vers /admin/admin et /app/app |
+| 2026-05-07 | Conflit routes / entre (admin) et (app) | Deux page.tsx au même chemin | Routes corrigées : /admin et /app |
 | 2026-05-07 | Emails membres format incorrect | Dots entre prénoms | Migration oldEmail→email dans seed avec updateMany |
+| 2026-05-08 | 404 sur /admin après login | Redirect vers /admin/admin incorrect (route = /admin) | Corrigé dans login/route.ts et layout.tsx |
+| 2026-05-08 | Build Vercel échoue : deux fichiers middleware détectés | middleware.ts + proxy.ts coexistaient | Supprimé middleware.ts via git rm |
+| 2026-05-08 | Pages admin crashent ("This page couldn't load") | NextIntlClientProvider absent du root layout | Ajouté dans app/layout.tsx |
+| 2026-05-08 | Build Vercel : type Date vs string dans MembresClient | createdAt/startDate/endDate typés string au lieu de Date | Corrigé dans MembresClient.tsx |
 
 ---
 
-## DETTE TECHNIQUE EN COURS (depuis le dernier audit)
-
-> Dette détectée pendant les sessions courantes, à consolider plus tard
-> dans `SPEC.md > Section 7`.
+## DETTE TECHNIQUE EN COURS
 
 | Priorité | Problème | Impact | Effort |
 |----------|----------|--------|--------|
-| Basse | Clé Resend non configurée | Reset mdp par email non fonctionnel | S — avant F-006 |
+| Basse | Clé Resend non configurée | Reset mdp par email non fonctionnel | S — avant F-006 validé |
+| Basse | `mandateDurationDays` colonne non migrée en DB | Cron mandats peut échouer | SQL à exécuter dans Neon |
 
 ---
 
 ## POINTS DE VIGILANCE
-
-> Choses à garder en tête à chaque session, qui ne sont pas encore stables
-> dans SPEC.
 
 - Permissions entièrement dynamiques (RBAC) — aucun rôle codé en dur
 - Scan QR Code via caméra PWA — attention iOS Safari
@@ -108,12 +122,27 @@
 - Volumétrie < 50 membres — ne pas sur-architecturer
 - `hasPermission` est la brique centrale de sécurité — tout nouveau module doit l'appeler
 - Email format membres : prénoms collés sans séparateur (ex: `papaibrahima.sy@ensmg.com`)
+- `proxy.ts` = middleware Next.js 16 (pas `middleware.ts`) — ne jamais créer middleware.ts
+- `NextIntlClientProvider` doit rester dans root layout — ne jamais le supprimer
 
 ---
 
 ## NOTES DE SESSION
 
 > Une note par session de travail. Plus récente en haut.
+
+### 2026-05-08 — F-005 à F-007 livrés + bugs routing/i18n corrigés
+
+Routing : 404 sur /admin corrigé (redirect était /admin/admin). middleware.ts supprimé
+(Next.js 16 Turbopack utilise proxy.ts). NextIntlClientProvider ajouté au root layout
+(Client Components crashaient en SSR faute de contexte i18n).
+F-005 : mandats (attribution poste, cron expiration, rappels 30j, historique).
+F-009 : i18n FR/EN (next-intl, cookie apats_locale, switch persistant).
+F-006 : CRUD membres admin (liste, création mot de passe aléatoire affiché, édition,
+réattribution poste → mandat auto). 12 tests.
+F-007 : CRUD catégories (nom, montant mensuel, blocage suppression si membres liés). 10 tests.
+App déployée sur apats.vercel.app et fonctionnelle (après fix NextIntlClientProvider).
+SQL Neon en attente : mandateDurationDays + hash admin APATS2026.
 
 ### 2026-05-07 — F-001 à F-004 livrés
 

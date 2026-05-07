@@ -102,7 +102,7 @@ F-001 (scaffolding)
 ---
 
 ### F-002 — Base de données & modèles fondamentaux
-- **Statut** : à faire
+- **Statut** : livré, à valider
 - **IDs CDC** : §4.2, §7, §9
 - **Description** : Connexion Supabase/PostgreSQL via Prisma. Migrations initiales. Modèles de base : `User`, `Post` (poste bureau), `Permission`, `Mandate`, `MemberCategory`, `AcademicYear`, `AppConfig`. Ces modèles sont la colonne vertébrale du projet — tout le reste en dépend.
 - **Dépendances** : F-001
@@ -114,7 +114,7 @@ F-001 (scaffolding)
 ---
 
 ### F-003 — Authentification
-- **Statut** : à faire
+- **Statut** : livré, à valider
 - **IDs CDC** : §5.1
 - **Description** : Page de login email/pwd (hashing bcrypt), session persistante PWA (JWT ou NextAuth), reset mdp par email (token unique durée 1h, usage unique, révocation si reconnexion), reset mdp par admin depuis back-office, redirection post-login selon profil (admin / bureau / membre simple). Protection brute-force : rate limiting 5 tentatives / 15 min.
 - **Dépendances** : F-002
@@ -126,7 +126,7 @@ F-001 (scaffolding)
 ---
 
 ### F-004 — RBAC dynamique (postes & permissions)
-- **Statut** : à faire
+- **Statut** : livré, à valider
 - **IDs CDC** : §4.2, §5.2.2
 - **Description** : Système de permissions entièrement dynamique — aucun rôle codé en dur. Middleware de contrôle d'accès sur toutes les routes protégées. UI admin : créer / renommer / supprimer des postes, configurer la grille de permissions (matrice poste × fonctionnalité). API de vérification de permission utilisée par tous les modules.
 - **Dépendances** : F-002
@@ -138,7 +138,8 @@ F-001 (scaffolding)
 ---
 
 ### F-005 — Gestion des mandats
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / 2026-05-08
 - **IDs CDC** : §5.2.3
 - **Description** : Attribution date début/fin de mandat lors de l'assignation d'un poste. Durée par défaut 2 ans (configurable). Renouvellement / clôture par admin. Job planifié (cron) : suspension automatique des permissions à expiration du mandat. Rappel automatique 30 jours avant expiration (in-app + email à l'admin). Historique des mandats consultable.
 - **Dépendances** : F-004
@@ -150,7 +151,8 @@ F-001 (scaffolding)
 ---
 
 ### F-006 — Admin : gestion des membres
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / 0ac6b76
 - **IDs CDC** : §5.2.1
 - **Description** : CRUD complet membres depuis le back-office admin : création (nom, prénom, email, catégorie, poste + mandat auto-créé) avec envoi automatique email de bienvenue incluant identifiants de connexion, modification des infos, désactivation / réactivation de compte, réattribution de poste (nouveau mandat créé automatiquement).
 - **Dépendances** : F-004, F-005
@@ -162,7 +164,8 @@ F-001 (scaffolding)
 ---
 
 ### F-007 — Admin : catégories & types de contribution
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / 8a81a4b
 - **IDs CDC** : §5.2.4
 - **Description** : Créer / nommer / modifier / supprimer les catégories de membres (vacataire, permanent, contractuel…). Définir le montant de cotisation **mensuelle** par catégorie. Fixer le prix de la carte de membre annuelle (modifiable chaque année académique). Créer de nouveaux types de contribution futurs.
 - **Dépendances** : F-006
@@ -184,7 +187,8 @@ F-001 (scaffolding)
 ---
 
 ### F-009 — Internationalisation FR/EN
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / 2026-05-08
 - **IDs CDC** : §7
 - **Description** : Setup i18n dès le début (next-intl) — fichiers de traduction FR/EN, switch de langue persistant par utilisateur, toutes les chaînes UI externalisées. À réaliser en parallèle de F-002, pas après : retrofitter l'i18n sur une codebase existante est coûteux.
 - **Dépendances** : F-001

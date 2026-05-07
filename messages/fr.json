@@ -1,1 +1,75 @@
-{}
+{
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "email": "Adresse email",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "forgotPassword": "Mot de passe oublié ?",
+      "backToLogin": "Retour à la connexion",
+      "resetTitle": "Réinitialiser le mot de passe",
+      "resetEmail": "Entrez votre adresse email",
+      "resetSubmit": "Envoyer le lien",
+      "resetSent": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.",
+      "errors": {
+        "emailRequired": "Email et mot de passe requis.",
+        "invalidCredentials": "Identifiants incorrects.",
+        "tooManyAttempts": "Trop de tentatives. Réessayez dans 15 minutes.",
+        "generic": "Une erreur est survenue. Réessayez."
+      }
+    },
+    "resetPassword": {
+      "title": "Nouveau mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Enregistrer",
+      "success": "Mot de passe mis à jour. Vous pouvez vous connecter.",
+      "errors": {
+        "mismatch": "Les mots de passe ne correspondent pas.",
+        "tokenInvalid": "Lien invalide ou expiré.",
+        "generic": "Une erreur est survenue."
+      }
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "postes": "Postes & Permissions"
+    },
+    "postes": {
+      "title": "Postes & Permissions",
+      "addPost": "Ajouter un poste",
+      "newPostPlaceholder": "Nom du nouveau poste",
+      "noPost": "Aucun poste créé.",
+      "feature": "Fonctionnalité",
+      "members": "membre(s)",
+      "deleteConfirm": "Supprimer le poste \"{name}\" ? Cette action est irréversible.",
+      "features": {
+        "MEMBERS_VIEW": "Membres — Voir la liste",
+        "MEMBERS_VIEW_DETAIL": "Membres — Voir le détail",
+        "MEMBERS_EXPORT": "Membres — Exporter",
+        "COTISATIONS_VIEW": "Cotisations — Voir",
+        "COTISATIONS_MANAGE": "Cotisations — Gérer",
+        "COTISATIONS_CONFIRM": "Cotisations — Confirmer paiements",
+        "MEETINGS_VIEW": "Réunions — Voir",
+        "MEETINGS_CREATE": "Réunions — Créer",
+        "MEETINGS_ATTENDANCE": "Réunions — Émargement",
+        "MEETINGS_UPLOAD_PV": "Réunions — Upload PV",
+        "EVENTS_VIEW": "Événements — Voir",
+        "EVENTS_CREATE": "Événements — Créer",
+        "TREASURY_VIEW": "Trésorerie — Voir",
+        "TREASURY_MANAGE": "Trésorerie — Gérer",
+        "TREASURY_EXPORT": "Trésorerie — Exporter",
+        "ANNOUNCEMENTS_CREATE": "Annonces — Créer"
+      }
+    }
+  },
+  "common": {
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "confirm": "Confirmer"
+  }
+}

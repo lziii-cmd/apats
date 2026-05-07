@@ -134,9 +134,10 @@ model Notification {
 }
 
 model AppConfig {
-  id            String   @id @default("singleton")
-  orgName       String   @default("Amicale des PATs — ENSMG")
-  logoUrl       String?
-  defaultLocale Locale   @default(fr)
-  updatedAt     DateTime @updatedAt
+  id                   String   @id @default("singleton")
+  orgName              String   @default("Amicale des PATs — ENSMG")
+  logoUrl              String?
+  defaultLocale        Locale   @default(fr)
+  mandateDurationDays  Int      @default(730) // 2 ans par défaut (CDC §5.2.3)
+  updatedAt            DateTime @updatedAt
 }

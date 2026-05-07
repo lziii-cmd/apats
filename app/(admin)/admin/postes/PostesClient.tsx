@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { Feature } from "@prisma/client";
+import { useTranslations } from "next-intl";
 
-// Labels lisibles pour chaque feature
+// Labels statiques conservés comme fallback (écrasés par les traductions à l'usage)
 const FEATURE_LABELS: Record<Feature, string> = {
   MEMBERS_VIEW:         "Membres — Voir la liste",
   MEMBERS_VIEW_DETAIL:  "Membres — Voir le détail",
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export default function PostesClient({ posts: initialPosts, allFeatures }: Props) {
+  const t = useTranslations("admin.postes");
   const [posts, setPosts] = useState<PostWithPermissions[]>(initialPosts);
   const [newPostName, setNewPostName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,7 +89,7 @@ export default function PostesClient({ posts: initialPosts, allFeatures }: Props
 
   // Supprimer un poste
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Supprimer le poste "${name}" ? Cette action est irréversible.`)) return;
+    if (!confirm(t("deleteConfirm", { name }))) return;
     setError(null);
 
     const res = await fetch(`/api/admin/posts/${id}`, { method: "DELETE" });
@@ -161,7 +163,7 @@ export default function PostesClient({ posts: initialPosts, allFeatures }: Props
       <div className="flex gap-3 items-center">
         <input
           type="text"
-          placeholder="Nom du nouveau poste"
+          placeholder={t("newPostPlaceholder")}
           value={newPostName}
           onChange={(e) => setNewPostName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleCreate()}
@@ -172,20 +174,20 @@ export default function PostesClient({ posts: initialPosts, allFeatures }: Props
           disabled={!newPostName.trim()}
           className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
         >
-          Ajouter un poste
+          {t("addPost")}
         </button>
       </div>
 
       {/* Matrice permissions */}
       {posts.length === 0 ? (
-        <p className="text-gray-500 text-sm">Aucun poste créé.</p>
+        <p className="text-gray-500 text-sm">{t("noPost")}</p>
       ) : (
         <div className="overflow-x-auto rounded border border-gray-200">
           <table className="min-w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-50">
                 <th className="text-left px-4 py-3 font-semibold text-gray-700 border-b border-r border-gray-200 min-w-[220px]">
-                  Fonctionnalité
+                  {t("feature")}
                 </th>
                 {posts.map((post) => (
                   <th
@@ -223,7 +225,7 @@ export default function PostesClient({ posts: initialPosts, allFeatures }: Props
                       <div className="flex flex-col items-center gap-1">
                         <span>{post.name}</span>
                         <span className="text-xs text-gray-400 font-normal">
-                          {post._count.mandates} membre(s)
+                          {post._count.mandates} {t("members")}
                         </span>
                         <div className="flex gap-2 text-xs">
                           <button
@@ -257,10 +259,11 @@ export default function PostesClient({ posts: initialPosts, allFeatures }: Props
                   className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
                 >
                   <td className="px-4 py-2 text-gray-700 border-r border-gray-200 whitespace-nowrap">
-                    {FEATURE_LABELS[feature]}
+                    {t(`features.${feature}` as Parameters<typeof t>[0])}
                   </td>
                   {posts.map((post) => {
                     const granted = getGranted(post, feature);
+                    const featureLabel = t(`features.${feature}` as Parameters<typeof t>[0]);
                     return (
                       <td
                         key={post.id}
@@ -269,7 +272,7 @@ export default function PostesClient({ posts: initialPosts, allFeatures }: Props
                         <button
                           onClick={() => handleToggle(post.id, feature)}
                           disabled={isPending}
-                          aria-label={`${granted ? "Retirer" : "Accorder"} ${FEATURE_LABELS[feature]} pour ${post.name}`}
+                          aria-label={`${granted ? "Retirer" : "Accorder"} ${featureLabel} pour ${post.name}`}
                           className={`w-8 h-8 rounded-full text-sm transition-colors ${
                             granted
                               ? "bg-green-100 text-green-700 hover:bg-green-200"

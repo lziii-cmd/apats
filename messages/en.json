@@ -1,1 +1,75 @@
-{}
+{
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot password?",
+      "backToLogin": "Back to sign in",
+      "resetTitle": "Reset your password",
+      "resetEmail": "Enter your email address",
+      "resetSubmit": "Send reset link",
+      "resetSent": "If an account exists with this email, you will receive a reset link.",
+      "errors": {
+        "emailRequired": "Email and password are required.",
+        "invalidCredentials": "Invalid credentials.",
+        "tooManyAttempts": "Too many attempts. Please try again in 15 minutes.",
+        "generic": "An error occurred. Please try again."
+      }
+    },
+    "resetPassword": {
+      "title": "New password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Save",
+      "success": "Password updated. You can now sign in.",
+      "errors": {
+        "mismatch": "Passwords do not match.",
+        "tokenInvalid": "Invalid or expired link.",
+        "generic": "An error occurred."
+      }
+    }
+  },
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "postes": "Roles & Permissions"
+    },
+    "postes": {
+      "title": "Roles & Permissions",
+      "addPost": "Add a role",
+      "newPostPlaceholder": "New role name",
+      "noPost": "No roles created.",
+      "feature": "Feature",
+      "members": "member(s)",
+      "deleteConfirm": "Delete role \"{name}\"? This action cannot be undone.",
+      "features": {
+        "MEMBERS_VIEW": "Members — View list",
+        "MEMBERS_VIEW_DETAIL": "Members — View details",
+        "MEMBERS_EXPORT": "Members — Export",
+        "COTISATIONS_VIEW": "Contributions — View",
+        "COTISATIONS_MANAGE": "Contributions — Manage",
+        "COTISATIONS_CONFIRM": "Contributions — Confirm payments",
+        "MEETINGS_VIEW": "Meetings — View",
+        "MEETINGS_CREATE": "Meetings — Create",
+        "MEETINGS_ATTENDANCE": "Meetings — Attendance",
+        "MEETINGS_UPLOAD_PV": "Meetings — Upload minutes",
+        "EVENTS_VIEW": "Events — View",
+        "EVENTS_CREATE": "Events — Create",
+        "TREASURY_VIEW": "Treasury — View",
+        "TREASURY_MANAGE": "Treasury — Manage",
+        "TREASURY_EXPORT": "Treasury — Export",
+        "ANNOUNCEMENTS_CREATE": "Announcements — Create"
+      }
+    }
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm"
+  }
+}

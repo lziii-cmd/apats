@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const t = await getTranslations("admin.nav");
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -12,15 +16,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           href="/admin/admin"
           className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
         >
-          Tableau de bord
+          {t("dashboard")}
         </Link>
         <Link
           href="/admin/postes"
           className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
         >
-          Postes &amp; Permissions
+          {t("postes")}
         </Link>
-        {/* Liens futurs : Membres (F-006), Config (F-008), etc. */}
+
+        <div className="mt-auto pt-4 border-t border-gray-700">
+          <LocaleSwitcher />
+        </div>
       </aside>
 
       {/* Contenu */}

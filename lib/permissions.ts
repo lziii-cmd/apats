@@ -18,8 +18,13 @@ export async function hasPermission(
   if (!user) return false;
   if (user.role === Role.ADMIN) return true;
 
+  const now = new Date();
   const mandate = await db.mandate.findFirst({
-    where: { userId, isActive: true },
+    where: {
+      userId,
+      isActive: true,
+      endDate: { gt: now }, // sécurité : mandat expiré = accès refusé immédiatement
+    },
     select: {
       post: {
         select: {
@@ -51,8 +56,13 @@ export async function getUserFeatures(userId: string): Promise<Feature[]> {
   if (!user) return [];
   if (user.role === Role.ADMIN) return Object.values(Feature);
 
+  const now = new Date();
   const mandate = await db.mandate.findFirst({
-    where: { userId, isActive: true },
+    where: {
+      userId,
+      isActive: true,
+      endDate: { gt: now },
+    },
     select: {
       post: {
         select: {

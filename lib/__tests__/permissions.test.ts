@@ -90,13 +90,28 @@ describe("hasPermission", () => {
 
   it("ne remonte que les mandats actifs (isActive: true passé à la requête)", async () => {
     mockUserFindUnique.mockResolvedValue({ role: Role.MEMBER });
-    mockMandateFindFirst.mockResolvedValue(null); // mandat expiré non retourné
+    mockMandateFindFirst.mockResolvedValue(null);
 
     await hasPermission("member-id", Feature.MEMBERS_VIEW);
 
     expect(mockMandateFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ isActive: true }),
+      })
+    );
+  });
+
+  it("filtre les mandats dont la date de fin est dépassée (endDate gt now)", async () => {
+    mockUserFindUnique.mockResolvedValue({ role: Role.MEMBER });
+    mockMandateFindFirst.mockResolvedValue(null); // mandat expiré exclu par la requête
+
+    await hasPermission("member-id", Feature.MEMBERS_VIEW);
+
+    expect(mockMandateFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          endDate: expect.objectContaining({ gt: expect.any(Date) }),
+        }),
       })
     );
   });

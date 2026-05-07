@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { signToken, COOKIE_NAME } from "@/lib/auth";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { LOCALE_COOKIE } from "@/i18n/request";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
@@ -48,6 +49,15 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7, // 7 jours
+    path: "/",
+  });
+
+  // Poser le cookie de locale depuis les préférences de l'utilisateur
+  response.cookies.set(LOCALE_COOKIE, user.locale, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365,
     path: "/",
   });
 

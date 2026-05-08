@@ -235,7 +235,42 @@
       "agendaLabel": "Ordre du jour",
       "inviteesList": "Liste des convoqués",
       "noAttendees": "Aucun convoqué.",
-      "detail": "Voir le détail"
+      "detail": "Voir le détail",
+      "emargementLink": "Émargement (secrétaire)",
+      "scannerLink": "Scanner le QR Code"
+    },
+    "emargement": {
+      "title": "Émargement",
+      "backToDetail": "← Retour à la réunion",
+      "qrTitle": "QR Code d'émargement",
+      "qrHint": "Cliquer pour agrandir",
+      "qrFullscreen": "Afficher en plein écran",
+      "qrClickToClose": "Cliquer pour fermer",
+      "scanActive": "Scan actif",
+      "attendanceList": "Liste de présence",
+      "autoRefresh": "Mise à jour auto",
+      "present": "Présent",
+      "markPresent": "Marquer présent",
+      "markAbsent": "Marquer absent",
+      "openMeeting": "Ouvrir la réunion",
+      "closeMeeting": "Clôturer",
+      "closed": "Clôturée",
+      "closeConfirmTitle": "Clôturer la réunion ?",
+      "closeConfirmText": "Les membres non scannés seront marqués absents. Cette action est irréversible.",
+      "cancel": "Annuler",
+      "confirmClose": "Clôturer"
+    },
+    "scanner": {
+      "title": "Scanner le QR Code",
+      "backToDetail": "← Retour à la réunion",
+      "instruction": "Pointez la caméra vers le QR Code affiché par le secrétaire",
+      "cameraError": "Impossible d'accéder à la caméra",
+      "cameraErrorHint": "Vérifiez les permissions dans votre navigateur, ou demandez au secrétaire de vous marquer présent(e).",
+      "scanning": "Scan en cours…",
+      "success": "Présence enregistrée !",
+      "alreadyScanned": "Votre présence est déjà enregistrée.",
+      "error": "Erreur lors du scan",
+      "tryAgain": "Réessayer"
     },
     "cotisations": {
       "title": "Cotisations",

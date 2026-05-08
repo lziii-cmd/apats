@@ -32,6 +32,7 @@ type Props = {
   meeting: Meeting;
   myAttendee: Attendee | null;
   canCreate: boolean;
+  canAttend: boolean;
 };
 
 const TYPE_COLORS = {
@@ -46,7 +47,7 @@ const TYPE_LABELS: Record<string, string> = {
   EXTRAORDINARY: "Extraordinaire",
 };
 
-export default function ReunionDetailClient({ meeting, myAttendee, canCreate }: Props) {
+export default function ReunionDetailClient({ meeting, myAttendee, canCreate, canAttend }: Props) {
   const t = useTranslations("app.reunions");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -167,6 +168,28 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate }: 
           {meeting.agenda}
         </div>
       </div>
+
+      {/* Boutons d'émargement */}
+      {meeting.status !== "PLANNED" && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {canAttend && (
+            <Link
+              href={`/app/reunions/${meeting.id}/emargement`}
+              className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+            >
+              📋 {t("emargementLink")}
+            </Link>
+          )}
+          {isInvited && meeting.status === "OPEN" && (
+            <Link
+              href={`/app/reunions/${meeting.id}/scanner`}
+              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+            >
+              📷 {t("scannerLink")}
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Bouton pré-confirmation */}
       {isInvited && meeting.status === "PLANNED" && (

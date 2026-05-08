@@ -235,7 +235,42 @@
       "agendaLabel": "Agenda",
       "inviteesList": "Invited list",
       "noAttendees": "No invitees.",
-      "detail": "View details"
+      "detail": "View details",
+      "emargementLink": "Attendance (secretary)",
+      "scannerLink": "Scan QR Code"
+    },
+    "emargement": {
+      "title": "Attendance",
+      "backToDetail": "← Back to meeting",
+      "qrTitle": "Attendance QR Code",
+      "qrHint": "Click to enlarge",
+      "qrFullscreen": "Show fullscreen",
+      "qrClickToClose": "Click to close",
+      "scanActive": "Scan active",
+      "attendanceList": "Attendance list",
+      "autoRefresh": "Auto refresh",
+      "present": "Present",
+      "markPresent": "Mark present",
+      "markAbsent": "Mark absent",
+      "openMeeting": "Open meeting",
+      "closeMeeting": "Close",
+      "closed": "Closed",
+      "closeConfirmTitle": "Close the meeting?",
+      "closeConfirmText": "Members who have not scanned will be marked absent. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirmClose": "Close meeting"
+    },
+    "scanner": {
+      "title": "Scan QR Code",
+      "backToDetail": "← Back to meeting",
+      "instruction": "Point your camera at the QR Code displayed by the secretary",
+      "cameraError": "Unable to access camera",
+      "cameraErrorHint": "Check your browser permissions, or ask the secretary to mark you as present.",
+      "scanning": "Scanning…",
+      "success": "Attendance recorded!",
+      "alreadyScanned": "Your attendance is already recorded.",
+      "error": "Scan error",
+      "tryAgain": "Try again"
     },
     "cotisations": {
       "title": "Contributions",

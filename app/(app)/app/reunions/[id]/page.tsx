@@ -21,6 +21,10 @@ export default async function ReunionDetailPage({ params }: Props) {
     session.role === "ADMIN" ||
     (await hasPermission(session.userId, "MEETINGS_CREATE" as Feature));
 
+  const canAttend =
+    session.role === "ADMIN" ||
+    (await hasPermission(session.userId, "MEETINGS_ATTENDANCE" as Feature));
+
   const { id } = await params;
 
   const meeting = await db.meeting.findUnique({
@@ -65,6 +69,7 @@ export default async function ReunionDetailPage({ params }: Props) {
       meeting={serialized}
       myAttendee={myAttendee ?? null}
       canCreate={canCreate}
+      canAttend={canAttend}
     />
   );
 }

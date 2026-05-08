@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { hashPassword } from "@/lib/password";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -72,6 +74,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (body.locale !== undefined) updateData.locale = body.locale;
   if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
+  // Réinitialisation du mot de passe
+  let tempPassword: string | undefined;
+  if (body.resetPassword) {
+    tempPassword = randomBytes(4).toString("hex");
+    updateData.passwordHash = await hashPassword(tempPassword);
+  }
+
   const user = await db.user.update({
     where: { id },
     data: updateData,
@@ -124,7 +133,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     });
   }
 
-  return NextResponse.json(user);
+  return NextResponse.json({ ...user, ...(tempPassword ? { tempPassword } : {}) });
 }
 
 // DELETE /api/admin/membres/[id]

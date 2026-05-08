@@ -86,7 +86,9 @@
       "statusFilter": "Statut",
       "statusAll": "Tous",
       "statusActive": "Actifs",
-      "statusInactive": "Désactivés"
+      "statusInactive": "Désactivés",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "resetPasswordSuccess": "Nouveau mot de passe généré."
     },
     "config": {
       "title": "Configuration générale",

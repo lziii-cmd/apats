@@ -155,6 +155,27 @@ export default function MembresClient({ membres, categories, posts }: Props) {
     }
   }
 
+  async function handleResetPassword() {
+    if (!editMembre) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/membres/${editMembre.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resetPassword: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Erreur");
+        return;
+      }
+      setTempPassword(data.tempPassword);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleToggleActive() {
     if (!confirmAction) return;
     const { type, membre } = confirmAction;
@@ -391,7 +412,9 @@ export default function MembresClient({ membres, categories, posts }: Props) {
             {tempPassword ? (
               <div className="space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded p-4">
-                  <p className="text-sm font-medium text-green-800 mb-1">{t("createSuccess")}</p>
+                  <p className="text-sm font-medium text-green-800 mb-1">
+                    {isEditing ? t("resetPasswordSuccess") : t("createSuccess")}
+                  </p>
                   <p className="text-xs text-green-700 mb-2">{t("tempPasswordNote")}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{t("tempPassword")} :</span>
@@ -482,7 +505,18 @@ export default function MembresClient({ membres, categories, posts }: Props) {
                   </select>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={loading}
+                    className="w-full border border-orange-300 text-orange-600 py-2 rounded text-sm hover:bg-orange-50 transition-colors disabled:opacity-60"
+                  >
+                    {loading ? "…" : t("resetPassword")}
+                  </button>
+                )}
+
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={closeModal}

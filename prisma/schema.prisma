@@ -31,6 +31,18 @@ enum MeetingType {
   EXTRAORDINARY
 }
 
+enum PaymentMode {
+  CASH
+  WAVE
+  ORANGE_MONEY
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
 enum Feature {
   // Membres
   MEMBERS_VIEW
@@ -80,6 +92,8 @@ model User {
   category             MemberCategory? @relation(fields: [categoryId], references: [id])
   mandates             Mandate[]
   notifications        Notification[]
+  memberCards          MemberCard[]
+  monthlyPayments      MonthlyPayment[]
   passwordResetToken   String?         @unique
   passwordResetExpiry  DateTime?
   createdAt            DateTime        @default(now())
@@ -140,5 +154,47 @@ model AppConfig {
   defaultLocale        Locale   @default(fr)
   academicYear         String   @default("2025-2026")
   mandateDurationDays  Int      @default(730) // 2 ans par défaut (CDC §5.2.3)
+  cardPriceFcfa        Int      @default(5000) // prix de la carte annuelle (CDC §5.4.1)
   updatedAt            DateTime @updatedAt
+}
+
+model MemberCard {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  academicYear String
+  pricePaid    Int
+  paymentMode  PaymentMode
+  paymentRef   String?
+  status       PaymentStatus @default(CONFIRMED)
+  confirmedBy  String?
+  confirmedAt  DateTime?
+  rejectReason String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([userId, academicYear])
+  @@index([status])
+}
+
+model MonthlyPayment {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month        Int
+  year         Int
+  amountDue    Int
+  amountPaid   Int
+  paymentMode  PaymentMode
+  paymentRef   String?
+  status       PaymentStatus @default(CONFIRMED)
+  confirmedBy  String?
+  confirmedAt  DateTime?
+  rejectReason String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([userId, year, month])
+  @@index([status])
+  @@index([userId])
 }

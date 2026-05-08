@@ -32,11 +32,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Link>
         )}
 
-        {canSee("COTISATIONS_VIEW") && (
-          <Link href="/app/cotisations" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors opacity-40 cursor-not-allowed pointer-events-none">
-            {t("cotisations")}
-          </Link>
-        )}
+        <Link href="/app/cotisations" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
+          {t("cotisations")}
+        </Link>
 
         {canSee("MEETINGS_VIEW") && (
           <Link href="/app/reunions" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors opacity-40 cursor-not-allowed pointer-events-none">

@@ -1,6 +1,32 @@
 # MEMORY.md — Mémoire du projet
 
-**Dernière mise à jour** : 2026-05-08
+**Dernière mise à jour** : 2026-05-08 (session 2)
+
+---
+
+## COMITÉ DE PROJET
+
+> Instauré le 2026-05-08. Représente l'utilisateur sur toutes les décisions techniques.
+> Consulté sur tout sujet important. Réponse unanime en français.
+> Rôle **consultatif** — pas de blocage. Si désaccord, discussion à trois (utilisateur + comité + Claude). L'utilisateur tranche en dernier.
+
+| # | Rôle | Domaine de vigilance |
+|---|------|---------------------|
+| 1 | Architecte Logiciel | Structure globale, cohérence technique, scalabilité |
+| 2 | Backend Senior | API, BDD, sécurité serveur, performance |
+| 3 | Frontend Senior | Composants, rendu, accessibilité technique |
+| 4 | Expert UX | Parcours utilisateur, ergonomie, friction |
+| 5 | Expert UI | Design system, cohérence visuelle, responsive |
+| 6 | Expert Métier | Conformité au CDC, logique association, cas réels |
+| 7 | Expert Cybersécurité | Auth, RBAC, exposition données, vulnérabilités |
+| 8 | Product Owner | Valeur délivrée, priorisation, périmètre |
+| 9 | QA / Testeur | Cas limites, couverture tests, non-régression |
+| 10 | DevOps | Build, déploiement, infra, observabilité |
+
+**Format de réponse du comité :**
+> 🏛️ **Avis du Comité** — [sujet]
+> [Position de chaque membre en 1 ligne]
+> **Unanime :** [recommandation finale]
 
 ---
 
@@ -20,10 +46,10 @@
 
 ## CONTEXTE ACTUEL
 
-- **Où on en est** : F-001 à F-009 livrés. M1 complet sauf F-008 (config générale). App déployée sur Vercel et fonctionnelle.
-- **Dernière fonctionnalité travaillée** : fix NextIntlClientProvider (root layout)
+- **Où on en est** : F-001 à F-009 + F-008 livrés. M1 complet. App déployée sur Vercel et fonctionnelle.
+- **Dernière fonctionnalité travaillée** : F-008 — Configuration générale
 - **Statut de cette feature** : livré, à valider en production
-- **Prochaine fonctionnalité prévue** : F-008 — Configuration générale (S, ½j)
+- **Prochaine fonctionnalité prévue** : F-010 — Membres : vue bureau + tableau de bord (M, 1j)
 - **Problèmes ouverts** :
   - Colonne `mandateDurationDays` à ajouter manuellement dans Neon (SQL ci-dessous)
   - Mot de passe admin à mettre à jour dans Neon (SQL ci-dessous)
@@ -34,6 +60,7 @@
 
 ### SQL à exécuter dans Neon (en attente)
 ```sql
+-- mandateDurationDays et mot de passe admin (session précédente)
 ALTER TABLE "AppConfig"
 ADD COLUMN IF NOT EXISTS "mandateDurationDays" INTEGER NOT NULL DEFAULT 730;
 
@@ -41,6 +68,8 @@ UPDATE "User"
 SET "passwordHash" = '61706f4d1b0ef9d5bc29bca7a7e506e07f2923bfae84d6da887a57c9296d58a1'
 WHERE email = 'admin@apats.ensmg';
 ```
+
+> ✅ **academicYear** exécuté en Neon le 2026-05-08 (session 2)
 
 ---
 
@@ -58,6 +87,7 @@ WHERE email = 'admin@apats.ensmg';
 | 2026-05-08 | F-009 — Internationalisation FR/EN | §7 | livré, à valider | master |
 | 2026-05-08 | F-006 — Admin : gestion des membres | §5.2.1, §5.2.3 | livré, à valider | master / 0ac6b76 |
 | 2026-05-08 | F-007 — Admin : catégories & types de contribution | §5.2.4 | livré, à valider | master / 8a81a4b |
+| 2026-05-08 | F-008 — Admin : configuration générale | §5.2.5 | livré, à valider | claude/thirsty-murdock-abe561 |
 
 > Statuts possibles : `en cours` | `livré` | `livré, à valider` | `pause` | `abandonné`
 
@@ -84,6 +114,9 @@ WHERE email = 'admin@apats.ensmg';
 | 2026-05-07 | Neon choisi à la place de Supabase | Interface Supabase complexe pour le dev solo, Neon plus simple | Non |
 | 2026-05-07 | Email format membres : prénoms collés sans séparateur | Convention PV AG constitutive | Non |
 | 2026-05-08 | Mot de passe temporaire : aléatoire 8 chars affiché une fois | Compromis sécurité/praticité pour association < 50 membres | Non |
+| 2026-05-08 | Logo via Vercel Blob (pas URL saisie) | Conforme CDC "upload image", filesystem Vercel read-only | Non |
+| 2026-05-08 | academicYear : String "AAAA-AAAA" avec regex | Convention naturelle, directement affichable, usage associatif | Non |
+| 2026-05-08 | Comité de projet instauré (10 experts) | Représente l'utilisateur sur toutes les décisions techniques | Non |
 | 2026-05-08 | proxy.ts = middleware Next.js 16 (pas middleware.ts) | Next.js 16 Turbopack exige proxy.ts + export fn proxy | Non |
 | 2026-05-08 | NextIntlClientProvider dans root layout | Requis pour useTranslations dans Client Components | Non |
 
@@ -130,6 +163,15 @@ WHERE email = 'admin@apats.ensmg';
 ## NOTES DE SESSION
 
 > Une note par session de travail. Plus récente en haut.
+
+### 2026-05-08 (session 2) — F-008 livré + Comité de projet instauré
+
+F-008 : page Configuration générale admin. Champ `academicYear` ajouté à AppConfig
+(schéma Prisma + SQL Neon exécuté). API GET/PATCH config + API POST/DELETE logo
+(Vercel Blob). 20 tests passants. Lien "Configuration" dans sidebar admin.
+Comité de projet instauré (10 experts, consultatif, FR, utilisateur tranche en dernier).
+À faire avant test en prod : configurer BLOB_READ_WRITE_TOKEN dans Vercel Dashboard.
+M1 complet (F-001 → F-009 + F-008).
 
 ### 2026-05-08 — F-005 à F-007 livrés + bugs routing/i18n corrigés
 

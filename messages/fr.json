@@ -36,7 +36,8 @@
       "dashboard": "Tableau de bord",
       "membres": "Membres",
       "categories": "Catégories",
-      "postes": "Postes & Permissions"
+      "postes": "Postes & Permissions",
+      "config": "Configuration"
     },
     "categories": {
       "title": "Catégories de membres",
@@ -74,6 +75,24 @@
       "noMandate": "Aucun poste",
       "deactivate": "Désactiver",
       "activate": "Réactiver"
+    },
+    "config": {
+      "title": "Configuration générale",
+      "orgName": "Nom de l'amicale",
+      "defaultLocale": "Langue par défaut",
+      "academicYear": "Année académique en cours",
+      "academicYearHint": "Format : AAAA-AAAA (ex : 2025-2026)",
+      "logo": "Logo de l'amicale",
+      "logoHint": "Formats acceptés : PNG, JPEG, WebP — 500 KB max",
+      "logoUpload": "Changer le logo",
+      "logoDelete": "Supprimer le logo",
+      "logoDeleteConfirm": "Supprimer le logo de l'amicale ?",
+      "logoNone": "Aucun logo défini",
+      "saveSuccess": "Configuration enregistrée.",
+      "logoUploadSuccess": "Logo mis à jour.",
+      "logoDeleteSuccess": "Logo supprimé.",
+      "localeFr": "Français",
+      "localeEn": "English"
     },
     "postes": {
       "title": "Postes & Permissions",

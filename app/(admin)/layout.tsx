@@ -36,6 +36,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         >
           {t("postes")}
         </Link>
+        <Link
+          href="/admin/config"
+          className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors"
+        >
+          {t("config")}
+        </Link>
 
         <div className="mt-auto pt-4 border-t border-gray-700">
           <LocaleSwitcher />

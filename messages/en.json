@@ -36,7 +36,8 @@
       "dashboard": "Dashboard",
       "membres": "Members",
       "categories": "Categories",
-      "postes": "Roles & Permissions"
+      "postes": "Roles & Permissions",
+      "config": "Settings"
     },
     "categories": {
       "title": "Member categories",
@@ -74,6 +75,24 @@
       "noMandate": "No role",
       "deactivate": "Deactivate",
       "activate": "Reactivate"
+    },
+    "config": {
+      "title": "General settings",
+      "orgName": "Association name",
+      "defaultLocale": "Default language",
+      "academicYear": "Current academic year",
+      "academicYearHint": "Format: YYYY-YYYY (e.g. 2025-2026)",
+      "logo": "Association logo",
+      "logoHint": "Accepted formats: PNG, JPEG, WebP — 500 KB max",
+      "logoUpload": "Change logo",
+      "logoDelete": "Remove logo",
+      "logoDeleteConfirm": "Remove the association logo?",
+      "logoNone": "No logo defined",
+      "saveSuccess": "Settings saved.",
+      "logoUploadSuccess": "Logo updated.",
+      "logoDeleteSuccess": "Logo removed.",
+      "localeFr": "Français",
+      "localeEn": "English"
     },
     "postes": {
       "title": "Roles & Permissions",

@@ -138,6 +138,7 @@ model AppConfig {
   orgName              String   @default("Amicale des PATs — ENSMG")
   logoUrl              String?
   defaultLocale        Locale   @default(fr)
+  academicYear         String   @default("2025-2026")
   mandateDurationDays  Int      @default(730) // 2 ans par défaut (CDC §5.2.3)
   updatedAt            DateTime @updatedAt
 }

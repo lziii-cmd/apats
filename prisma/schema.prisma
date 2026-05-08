@@ -43,6 +43,18 @@ enum PaymentStatus {
   REJECTED
 }
 
+enum MeetingStatus {
+  PLANNED
+  OPEN
+  CLOSED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  EXCUSED
+}
+
 enum Feature {
   // Membres
   MEMBERS_VIEW
@@ -82,23 +94,25 @@ model MemberCategory {
 }
 
 model User {
-  id                   String          @id @default(cuid())
-  email                String          @unique
+  id                   String            @id @default(cuid())
+  email                String            @unique
   name                 String
   passwordHash         String
-  role                 Role            @default(MEMBER)
-  locale               Locale          @default(fr)
+  role                 Role              @default(MEMBER)
+  locale               Locale            @default(fr)
   categoryId           String?
-  category             MemberCategory? @relation(fields: [categoryId], references: [id])
+  category             MemberCategory?   @relation(fields: [categoryId], references: [id])
   mandates             Mandate[]
   notifications        Notification[]
   memberCards          MemberCard[]
   monthlyPayments      MonthlyPayment[]
-  passwordResetToken   String?         @unique
+  meetingsCreated      Meeting[]
+  meetingAttendances   MeetingAttendee[]
+  passwordResetToken   String?           @unique
   passwordResetExpiry  DateTime?
-  isActive             Boolean         @default(true)
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  isActive             Boolean           @default(true)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 }
 
 model Post {
@@ -197,5 +211,42 @@ model MonthlyPayment {
 
   @@unique([userId, year, month])
   @@index([status])
+  @@index([userId])
+}
+
+model Meeting {
+  id          String            @id @default(cuid())
+  type        MeetingType
+  title       String
+  date        DateTime
+  endTime     DateTime?
+  location    String
+  speakers    String?
+  agenda      String
+  qrCode      String            @unique @default(cuid())
+  status      MeetingStatus     @default(PLANNED)
+  createdById String
+  createdBy   User              @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  attendees   MeetingAttendee[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([status])
+  @@index([date])
+}
+
+model MeetingAttendee {
+  id               String            @id @default(cuid())
+  meetingId        String
+  meeting          Meeting           @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preConfirmed     Boolean           @default(false)
+  attended         Boolean?
+  attendanceStatus AttendanceStatus?
+  createdAt        DateTime          @default(now())
+
+  @@unique([meetingId, userId])
+  @@index([meetingId])
   @@index([userId])
 }

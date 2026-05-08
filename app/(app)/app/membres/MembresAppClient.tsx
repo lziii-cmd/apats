@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -10,6 +10,7 @@ type Membre = {
   id: string;
   name: string;
   email: string;
+  isOverdue: boolean;
   category: { id: string; name: string; monthlyFee: number } | null;
   mandates: { id: string; startDate: string; endDate: string; post: { id: string; name: string } }[];
 };
@@ -30,20 +31,22 @@ export default function MembresAppClient({
   const [loading, setLoading] = useState(true);
   const [categoryId, setCategoryId] = useState("");
   const [postId, setPostId] = useState("");
+  const [cotisationStatus, setCotisationStatus] = useState("all");
 
-  useEffect(() => {
-    fetchMembres();
-  }, [categoryId, postId]);
-
-  async function fetchMembres() {
+  const fetchMembres = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (categoryId) params.set("categoryId", categoryId);
     if (postId) params.set("postId", postId);
+    if (cotisationStatus !== "all") params.set("cotisationStatus", cotisationStatus);
     const res = await fetch(`/api/membres?${params}`);
     if (res.ok) setMembres(await res.json());
     setLoading(false);
-  }
+  }, [categoryId, postId, cotisationStatus]);
+
+  useEffect(() => {
+    fetchMembres();
+  }, [fetchMembres]);
 
   function handleExport() {
     window.open("/api/membres/export", "_blank");
@@ -87,13 +90,14 @@ export default function MembresAppClient({
           ))}
         </select>
 
-        {/* Filtre cotisation — placeholder F-011 */}
         <select
-          disabled
-          title={t("cotisationFilterSoon")}
-          className="border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-400 cursor-not-allowed bg-gray-50"
+          value={cotisationStatus}
+          onChange={(e) => setCotisationStatus(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option>{t("allStatuses")}</option>
+          <option value="all">{t("allStatuses")}</option>
+          <option value="overdue">{t("statusOverdue")}</option>
+          <option value="upToDate">{t("statusUpToDate")}</option>
         </select>
       </div>
 
@@ -120,14 +124,19 @@ export default function MembresAppClient({
                 const mandat = m.mandates[0];
                 return (
                   <tr key={m.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium">{m.name}</td>
+                    <td className="px-4 py-3 font-medium">
+                      <span>{m.name}</span>
+                      {m.isOverdue && (
+                        <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                          {t("overdueTag")}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-600">{m.email}</td>
                     <td className="px-4 py-3">{m.category?.name ?? "—"}</td>
                     <td className="px-4 py-3">
                       {mandat ? (
-                        <span className="inline-flex items-center gap-1">
-                          {mandat.post.name}
-                        </span>
+                        <span>{mandat.post.name}</span>
                       ) : (
                         <span className="text-gray-400">{t("noPost")}</span>
                       )}

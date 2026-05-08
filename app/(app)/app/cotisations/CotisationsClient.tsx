@@ -98,6 +98,7 @@ export default function CotisationsClient({
   canConfirm: boolean;
 }) {
   const t = useTranslations("app.cotisations");
+  const tc = useTranslations("common");
 
   const [summary, setSummary] = useState<Summary | null>(null);
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -462,14 +463,14 @@ export default function CotisationsClient({
                 onClick={() => { setShowDeclareForm(false); setDeclareError(""); }}
                 className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5"
               >
-                Annuler
+                {tc("cancel")}
               </button>
               <button
                 onClick={handleDeclare}
                 disabled={declaring}
                 className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded disabled:opacity-50 transition-colors"
               >
-                {declaring ? "…" : "Confirmer"}
+                {declaring ? "…" : tc("confirm")}
               </button>
             </div>
           </div>
@@ -495,7 +496,7 @@ export default function CotisationsClient({
                 onClick={() => { setRejectingId(null); setRejectReason(""); }}
                 className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5"
               >
-                Annuler
+                {tc("cancel")}
               </button>
               <button
                 onClick={handleReject}

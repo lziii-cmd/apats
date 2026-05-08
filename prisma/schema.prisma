@@ -96,6 +96,7 @@ model User {
   monthlyPayments      MonthlyPayment[]
   passwordResetToken   String?         @unique
   passwordResetExpiry  DateTime?
+  isActive             Boolean         @default(true)
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 }

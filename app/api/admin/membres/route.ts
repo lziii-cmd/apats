@@ -18,6 +18,7 @@ export async function GET() {
       name: true,
       email: true,
       locale: true,
+      isActive: true,
       createdAt: true,
       category: { select: { id: true, name: true, monthlyFee: true } },
       mandates: {

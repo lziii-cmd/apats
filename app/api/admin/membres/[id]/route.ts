@@ -20,6 +20,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       name: true,
       email: true,
       locale: true,
+      isActive: true,
       createdAt: true,
       category: { select: { id: true, name: true, monthlyFee: true } },
       mandates: {
@@ -69,6 +70,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (body.email !== undefined) updateData.email = body.email;
   if (body.categoryId !== undefined) updateData.categoryId = body.categoryId;
   if (body.locale !== undefined) updateData.locale = body.locale;
+  if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
   const user = await db.user.update({
     where: { id },
@@ -78,6 +80,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       name: true,
       email: true,
       locale: true,
+      isActive: true,
       createdAt: true,
       category: { select: { id: true, name: true, monthlyFee: true } },
       mandates: {
@@ -122,4 +125,40 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   return NextResponse.json(user);
+}
+
+// DELETE /api/admin/membres/[id]
+// Bloqué si le membre a des cotisations confirmées (suggère désactivation).
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  const session = await getSession();
+  if (!session || session.role !== "ADMIN") {
+    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  const user = await db.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      _count: {
+        select: {
+          memberCards: { where: { status: "CONFIRMED" } },
+          monthlyPayments: { where: { status: "CONFIRMED" } },
+        },
+      },
+    },
+  });
+
+  if (!user) return NextResponse.json({ error: "Membre introuvable." }, { status: 404 });
+
+  if (user._count.memberCards > 0 || user._count.monthlyPayments > 0) {
+    return NextResponse.json(
+      { error: "Ce membre a des cotisations confirmées. Désactivez-le plutôt que de le supprimer." },
+      { status: 409 }
+    );
+  }
+
+  await db.user.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
 }

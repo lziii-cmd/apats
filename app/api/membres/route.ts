@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { Feature } from "@prisma/client";
 
-// GET /api/membres?categoryId=&postId=
+// GET /api/membres?categoryId=&postId=&cotisationStatus=all|overdue|upToDate
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
@@ -17,14 +17,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const categoryId = searchParams.get("categoryId") ?? undefined;
   const postId = searchParams.get("postId") ?? undefined;
+  const cotisationStatus = searchParams.get("cotisationStatus") ?? "all";
 
   const membres = await db.user.findMany({
     where: {
       role: "MEMBER",
+      isActive: true,
       ...(categoryId ? { categoryId } : {}),
-      ...(postId
-        ? { mandates: { some: { isActive: true, postId } } }
-        : {}),
+      ...(postId ? { mandates: { some: { isActive: true, postId } } } : {}),
     },
     orderBy: { name: "asc" },
     select: {
@@ -45,8 +45,40 @@ export async function GET(req: NextRequest) {
           post: { select: { id: true, name: true } },
         },
       },
+      monthlyPayments: {
+        where: { status: "CONFIRMED" },
+        select: { year: true, month: true },
+      },
     },
   });
 
-  return NextResponse.json(membres);
+  // Calcul isOverdue pour chaque membre
+  const now = new Date();
+  const result = membres.map((m) => {
+    const confirmedSet = new Set(
+      m.monthlyPayments.map((p) => `${p.year}-${p.month}`)
+    );
+    const start = new Date(m.createdAt);
+    let isOverdue = false;
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    const limit = new Date(now.getFullYear(), now.getMonth(), 1);
+    while (cur < limit) {
+      if (!confirmedSet.has(`${cur.getFullYear()}-${cur.getMonth() + 1}`)) {
+        isOverdue = true;
+        break;
+      }
+      cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    }
+    const { monthlyPayments: _payments, ...rest } = m;
+    return { ...rest, isOverdue };
+  });
+
+  const filtered =
+    cotisationStatus === "overdue"
+      ? result.filter((m) => m.isOverdue)
+      : cotisationStatus === "upToDate"
+      ? result.filter((m) => !m.isOverdue)
+      : result;
+
+  return NextResponse.json(filtered);
 }

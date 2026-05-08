@@ -29,6 +29,12 @@ export async function POST(req: NextRequest) {
 
   const { valid, needsUpgrade, newHash } = await verifyPassword(body.password, user.passwordHash);
 
+  // Vérification isActive après validation du mot de passe (même message générique
+  // pour ne pas révéler si le compte existe ou non avant authentification).
+  if (valid && !user.isActive) {
+    return NextResponse.json({ error: "Ce compte a été désactivé. Contactez l'administrateur." }, { status: 403 });
+  }
+
   if (!valid) {
     return NextResponse.json({ error: "Identifiants incorrects." }, { status: 401 });
   }

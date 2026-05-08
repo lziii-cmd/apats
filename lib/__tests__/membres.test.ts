@@ -8,6 +8,7 @@ vi.mock("@/lib/db", () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
     memberCategory: { findMany: vi.fn() },
     post: { findMany: vi.fn() },
@@ -27,7 +28,7 @@ vi.mock("@/lib/auth", () => ({
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { POST as createMembre } from "@/app/api/admin/membres/route";
-import { PATCH as patchMembre } from "@/app/api/admin/membres/[id]/route";
+import { PATCH as patchMembre, DELETE as deleteMembre } from "@/app/api/admin/membres/[id]/route";
 
 const mockSession = { userId: "admin-1", email: "admin@apats.ensmg", role: "ADMIN" };
 
@@ -180,5 +181,68 @@ describe("PATCH /api/admin/membres/[id]", () => {
       data: { isActive: false },
     });
     expect(db.mandate.create).not.toHaveBeenCalled();
+  });
+
+  it("désactive le compte (isActive=false)", async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue({ id: "u1", email: "m@x.com" } as never);
+    vi.mocked(db.user.update).mockResolvedValue({
+      id: "u1", name: "X", email: "m@x.com", locale: "fr", isActive: false,
+      createdAt: new Date(), category: null, mandates: [],
+    } as never);
+
+    const res = await patchMembre(makeReqPatch({ isActive: false }) as never, { params } as never);
+    expect(res.status).toBe(200);
+    expect(db.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ isActive: false }) })
+    );
+  });
+
+  it("réactive le compte (isActive=true)", async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue({ id: "u1", email: "m@x.com" } as never);
+    vi.mocked(db.user.update).mockResolvedValue({
+      id: "u1", name: "X", email: "m@x.com", locale: "fr", isActive: true,
+      createdAt: new Date(), category: null, mandates: [],
+    } as never);
+
+    const res = await patchMembre(makeReqPatch({ isActive: true }) as never, { params } as never);
+    expect(res.status).toBe(200);
+    expect(db.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ isActive: true }) })
+    );
+  });
+});
+
+describe("DELETE /api/admin/membres/[id]", () => {
+  const params = Promise.resolve({ id: "u1" });
+
+  function makeReqDelete(): Request {
+    return new Request("http://localhost/api/admin/membres/u1", { method: "DELETE" });
+  }
+
+  it("refuse sans session", async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    const res = await deleteMembre(makeReqDelete() as never, { params } as never);
+    expect(res.status).toBe(403);
+  });
+
+  it("refuse si le membre a des cotisations confirmées", async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      id: "u1",
+      _count: { memberCards: 1, monthlyPayments: 0 },
+    } as never);
+    const res = await deleteMembre(makeReqDelete() as never, { params } as never);
+    expect(res.status).toBe(409);
+  });
+
+  it("supprime le membre si aucune cotisation confirmée", async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      id: "u1",
+      _count: { memberCards: 0, monthlyPayments: 0 },
+    } as never);
+    vi.mocked(db.user.delete).mockResolvedValue({ id: "u1" } as never);
+
+    const res = await deleteMembre(makeReqDelete() as never, { params } as never);
+    expect(res.status).toBe(200);
+    expect(db.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } });
   });
 });

@@ -11,6 +11,7 @@ export default async function MembresPage() {
         name: true,
         email: true,
         locale: true,
+        isActive: true,
         createdAt: true,
         category: { select: { id: true, name: true, monthlyFee: true } },
         mandates: {

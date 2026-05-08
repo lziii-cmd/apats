@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { Role } from "@prisma/client";
+import { db } from "@/lib/db";
 
 const SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET ?? "dev-secret-change-me"
@@ -36,7 +37,19 @@ export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
-  return verifyToken(token);
+
+  const payload = await verifyToken(token);
+  if (!payload) return null;
+
+  // Vérification isActive à chaque requête : un compte désactivé perd l'accès
+  // immédiatement, même si son token JWT est encore valide.
+  const user = await db.user.findUnique({
+    where: { id: payload.userId },
+    select: { isActive: true },
+  });
+  if (!user?.isActive) return null;
+
+  return payload;
 }
 
 export { COOKIE_NAME, TOKEN_TTL };

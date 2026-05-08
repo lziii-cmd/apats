@@ -39,6 +39,7 @@ const mockMembre = {
   name: "Ibrahima Sy",
   email: "ibrahima.sy@ensmg.com",
   locale: "fr",
+  isActive: true,
   createdAt: new Date("2024-01-01"),
   category: { id: "c1", name: "CDI", monthlyFee: 3000 },
   mandates: [
@@ -50,6 +51,7 @@ const mockMembre = {
       post: { id: "p1", name: "Président" },
     },
   ],
+  monthlyPayments: [],
 };
 
 function req(url = "http://localhost/api/membres") {

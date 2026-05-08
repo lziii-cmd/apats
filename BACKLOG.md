@@ -213,7 +213,8 @@ F-001 (scaffolding)
 ---
 
 ### F-011 — Gestion des cotisations
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / b2c37f1
 - **IDs CDC** : §5.4
 - **Description** : Suivi carte de membre annuelle (prise / non prise par année académique) + cotisations **mensuelles** par membre (montant selon catégorie). Enregistrement paiement espèces par trésorier. Déclaration paiement Wave / Orange Money par membre (mode + référence transaction). Notification automatique au trésorier + workflow confirmation / rejet. Tableau de bord trésorier (taux cotisation, montant collecté vs attendu). Indicateurs visuels membres en retard. Rappels automatiques (in-app + email) aux membres en retard.
 - **Dépendances** : F-007, F-010

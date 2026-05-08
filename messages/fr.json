@@ -122,6 +122,57 @@
       }
     }
   },
+  "app": {
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "membres": "Membres",
+      "cotisations": "Cotisations",
+      "reunions": "Réunions",
+      "evenements": "Événements",
+      "tresorerie": "Trésorerie",
+      "communication": "Communication",
+      "profil": "Mon Profil"
+    },
+    "dashboard": {
+      "welcome": "Bonjour, {name}",
+      "academicYear": "Année académique",
+      "totalMembers": "membres au total",
+      "cotisationsRetard": "Cotisations en retard",
+      "prochaineReunion": "Prochaine réunion",
+      "soldeTresorerie": "Solde trésorerie",
+      "dernieresAnnonces": "Dernières annonces",
+      "comingSoon": "Disponible dans une prochaine version",
+      "noData": "Aucune donnée"
+    },
+    "membres": {
+      "title": "Membres",
+      "filterCategory": "Catégorie",
+      "filterPost": "Poste",
+      "filterCotisation": "Statut cotisation",
+      "allCategories": "Toutes les catégories",
+      "allPosts": "Tous les postes",
+      "allStatuses": "Tous les statuts",
+      "cotisationFilterSoon": "Disponible avec le module Cotisations",
+      "export": "Exporter Excel",
+      "name": "Nom",
+      "email": "Email",
+      "category": "Catégorie",
+      "post": "Poste",
+      "mandateEnd": "Fin de mandat",
+      "noPost": "Sans poste",
+      "noMembers": "Aucun membre trouvé.",
+      "viewDetail": "Voir la fiche",
+      "backToList": "← Retour à la liste",
+      "memberSince": "Membre depuis",
+      "mandateHistory": "Historique des mandats",
+      "noMandate": "Aucun mandat",
+      "cotisationHistory": "Historique des cotisations",
+      "cotisationHistorySoon": "Disponible avec le module Cotisations (F-011)",
+      "active": "actif",
+      "inactive": "expiré",
+      "locale": "Langue"
+    }
+  },
   "common": {
     "loading": "Chargement…",
     "save": "Enregistrer",

@@ -122,6 +122,57 @@
       }
     }
   },
+  "app": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "membres": "Members",
+      "cotisations": "Contributions",
+      "reunions": "Meetings",
+      "evenements": "Events",
+      "tresorerie": "Treasury",
+      "communication": "Communication",
+      "profil": "My Profile"
+    },
+    "dashboard": {
+      "welcome": "Hello, {name}",
+      "academicYear": "Academic year",
+      "totalMembers": "members total",
+      "cotisationsRetard": "Overdue contributions",
+      "prochaineReunion": "Next meeting",
+      "soldeTresorerie": "Treasury balance",
+      "dernieresAnnonces": "Latest announcements",
+      "comingSoon": "Available in a future version",
+      "noData": "No data"
+    },
+    "membres": {
+      "title": "Members",
+      "filterCategory": "Category",
+      "filterPost": "Role",
+      "filterCotisation": "Contribution status",
+      "allCategories": "All categories",
+      "allPosts": "All roles",
+      "allStatuses": "All statuses",
+      "cotisationFilterSoon": "Available with the Contributions module",
+      "export": "Export Excel",
+      "name": "Name",
+      "email": "Email",
+      "category": "Category",
+      "post": "Role",
+      "mandateEnd": "Mandate end",
+      "noPost": "No role",
+      "noMembers": "No members found.",
+      "viewDetail": "View profile",
+      "backToList": "← Back to list",
+      "memberSince": "Member since",
+      "mandateHistory": "Mandate history",
+      "noMandate": "No mandate",
+      "cotisationHistory": "Contribution history",
+      "cotisationHistorySoon": "Available with the Contributions module (F-011)",
+      "active": "active",
+      "inactive": "expired",
+      "locale": "Language"
+    }
+  },
   "common": {
     "loading": "Loading…",
     "save": "Save",

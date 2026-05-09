@@ -24,6 +24,7 @@ type Meeting = {
   agenda: string;
   qrCode: string;
   status: "PLANNED" | "OPEN" | "CLOSED";
+  pvUrl: string | null;
   createdBy: { id: string; name: string };
   attendees: Attendee[];
 };
@@ -33,6 +34,7 @@ type Props = {
   myAttendee: Attendee | null;
   canCreate: boolean;
   canAttend: boolean;
+  canUploadPV: boolean;
 };
 
 const TYPE_COLORS = {
@@ -42,12 +44,14 @@ const TYPE_COLORS = {
 };
 
 
-export default function ReunionDetailClient({ meeting, myAttendee, canCreate, canAttend }: Props) {
+export default function ReunionDetailClient({ meeting, myAttendee, canCreate, canAttend, canUploadPV }: Props) {
   const t = useTranslations("app.reunions");
   const tc = useTranslations("common");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pvLoading, setPvLoading] = useState(false);
+  const [pvUrl, setPvUrl] = useState(meeting.pvUrl);
 
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("fr-FR", {
@@ -69,6 +73,34 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
       router.refresh();
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleUploadPV(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPvLoading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`/api/reunions/${meeting.id}/pv`, { method: "POST", body: form });
+      if (res.ok) {
+        const data = await res.json();
+        setPvUrl(data.pvUrl);
+      }
+    } finally {
+      setPvLoading(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleDeletePV() {
+    setPvLoading(true);
+    try {
+      await fetch(`/api/reunions/${meeting.id}/pv`, { method: "DELETE" });
+      setPvUrl(null);
+    } finally {
+      setPvLoading(false);
     }
   }
 
@@ -233,6 +265,89 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
           </div>
         )}
       </div>
+
+      {/* Récapitulatif clôture */}
+      {meeting.status === "CLOSED" && (() => {
+        const presents = meeting.attendees.filter((a) => a.attendanceStatus === "PRESENT");
+        const absents = meeting.attendees.filter((a) => a.attendanceStatus === "ABSENT");
+        const excused = meeting.attendees.filter((a) => a.attendanceStatus === "EXCUSED");
+        const total = meeting.attendees.length;
+        const rate = total > 0 ? Math.round((presents.length / total) * 100) : 0;
+
+        return (
+          <div className="mt-8 border-t border-gray-200 pt-6">
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">{t("recapTitle")}</h2>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {[
+                { label: t("recapTotal"), value: total, color: "bg-gray-50 text-gray-700" },
+                { label: t("recapPresent"), value: presents.length, color: "bg-emerald-50 text-emerald-700" },
+                { label: t("recapAbsent"), value: absents.length, color: "bg-red-50 text-red-700" },
+                { label: t("recapRate"), value: `${rate}%`, color: "bg-blue-50 text-blue-700" },
+              ].map((s) => (
+                <div key={s.label} className={`rounded-lg p-3 text-center ${s.color}`}>
+                  <p className="text-2xl font-bold">{s.value}</p>
+                  <p className="text-xs mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Listes */}
+            {[
+              { label: t("recapPresentList"), members: presents, color: "text-emerald-700 bg-emerald-50" },
+              { label: t("recapAbsentList"), members: absents, color: "text-red-700 bg-red-50" },
+              ...(excused.length > 0 ? [{ label: t("recapExcusedList"), members: excused, color: "text-orange-700 bg-orange-50" }] : []),
+            ].map((group) => (
+              <div key={group.label} className="mb-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  {group.label} ({group.members.length})
+                </p>
+                {group.members.length === 0 ? (
+                  <p className="text-sm text-gray-400">—</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.members.map((a) => (
+                      <span key={a.userId} className={`text-xs px-2 py-1 rounded ${group.color}`}>
+                        {a.user.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* PV */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">{t("pvTitle")}</p>
+                {pvUrl ? (
+                  <a href={pvUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:underline">
+                    {t("pvDownload")}
+                  </a>
+                ) : (
+                  <p className="text-xs text-gray-400">{t("pvNone")}</p>
+                )}
+              </div>
+              {canUploadPV && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <label className={`cursor-pointer text-xs px-3 py-1.5 rounded border transition-colors ${pvLoading ? "opacity-50 pointer-events-none" : "border-blue-300 text-blue-600 hover:bg-blue-50"}`}>
+                    {pvLoading ? "…" : pvUrl ? t("pvReplace") : t("pvUpload")}
+                    <input type="file" accept="application/pdf" className="hidden" onChange={handleUploadPV} disabled={pvLoading} />
+                  </label>
+                  {pvUrl && (
+                    <button onClick={handleDeletePV} disabled={pvLoading}
+                      className="text-xs px-3 py-1.5 rounded border border-red-200 text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                      {t("pvDelete")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal suppression */}
       {showDeleteConfirm && (

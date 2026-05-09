@@ -170,12 +170,20 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
       </div>
 
       {/* Boutons d'émargement */}
-      {meeting.status !== "PLANNED" && (
+      {(canAttend || (isInvited && meeting.status === "OPEN")) && (
         <div className="flex flex-wrap gap-2 mb-6">
-          {canAttend && (
+          {canAttend && meeting.status !== "CLOSED" && (
             <Link
               href={`/app/reunions/${meeting.id}/emargement`}
               className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+            >
+              📋 {t("emargementLink")}
+            </Link>
+          )}
+          {canAttend && meeting.status === "CLOSED" && (
+            <Link
+              href={`/app/reunions/${meeting.id}/emargement`}
+              className="inline-flex items-center gap-1.5 border border-indigo-300 text-indigo-600 px-4 py-2 rounded text-sm font-medium hover:bg-indigo-50 transition-colors"
             >
               📋 {t("emargementLink")}
             </Link>

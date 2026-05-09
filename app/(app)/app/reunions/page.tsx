@@ -13,7 +13,13 @@ export default async function ReunionsPage() {
     session.role === "ADMIN" ||
     (await hasPermission(session.userId, "MEETINGS_CREATE" as Feature));
 
+  const canManage =
+    session.role === "ADMIN" ||
+    (await hasPermission(session.userId, "MEETINGS_VIEW" as Feature)) ||
+    canCreate;
+
   const meetings = await db.meeting.findMany({
+    where: canManage ? undefined : { attendees: { some: { userId: session.userId } } },
     orderBy: { date: "desc" },
     select: {
       id: true,

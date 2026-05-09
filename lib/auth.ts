@@ -43,11 +43,17 @@ export async function getSession(): Promise<SessionPayload | null> {
 
   // Vérification isActive à chaque requête : un compte désactivé perd l'accès
   // immédiatement, même si son token JWT est encore valide.
-  const user = await db.user.findUnique({
-    where: { id: payload.userId },
-    select: { isActive: true },
-  });
-  if (!user?.isActive) return null;
+  // En cas d'échec DB (ex: Neon en veille), on fait confiance au JWT plutôt
+  // que de déconnecter l'utilisateur.
+  try {
+    const user = await db.user.findUnique({
+      where: { id: payload.userId },
+      select: { isActive: true },
+    });
+    if (!user || !user.isActive) return null;
+  } catch {
+    // DB temporairement indisponible — le JWT reste la source de vérité
+  }
 
   return payload;
 }

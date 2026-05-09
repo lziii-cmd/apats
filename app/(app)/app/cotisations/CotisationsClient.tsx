@@ -383,7 +383,7 @@ export default function CotisationsClient({
       {loadingSummary ? (
         <p style={{ fontSize: "13px", color: "var(--color-text-tertiary)" }}>Chargement…</p>
       ) : summary ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", alignItems: "start" }}>
+        <div className="grid-2col">
           {/* ── Colonne gauche: carte + historique ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {/* Carte de membre */}

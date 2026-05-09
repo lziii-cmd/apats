@@ -104,7 +104,7 @@ export default function EvenementsClient({ events, canCreate }: Props) {
           {t("noEvents")}
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+        <div className="grid-events">
           {displayed.map((e) => {
             const isIn = e.participants.length > 0;
             const isLoading = loadingId === e.id;

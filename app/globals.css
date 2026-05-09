@@ -82,3 +82,63 @@ button:not([class]) {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* ── Responsive grids (2-column layouts) ── */
+/* grid-2col : deux colonnes égales (profil, cotisations, réunions) */
+.grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+/* grid-sidebar : colonne principale + sidebar (communication) */
+.grid-sidebar {
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* grid-events : 2 colonnes pour les cartes événements */
+.grid-events {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* ── Profile header responsive ── */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.profile-header-kpis {
+  display: flex;
+  gap: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .grid-2col,
+  .grid-sidebar,
+  .grid-events {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-header {
+    flex-wrap: wrap;
+  }
+
+  .profile-header-kpis {
+    width: 100%;
+    justify-content: space-between;
+    text-align: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+  }
+}

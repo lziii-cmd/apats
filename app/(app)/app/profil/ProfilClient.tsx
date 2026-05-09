@@ -216,13 +216,11 @@ export default function ProfilClient() {
     <div style={{ padding: "22px 24px" }}>
       {/* ── Header banner pleine largeur ── */}
       <div
+        className="profile-header"
         style={{
           background: "#14171c",
           borderRadius: "var(--border-radius-lg)",
           padding: "20px 24px",
-          display: "flex",
-          alignItems: "center",
-          gap: "18px",
           marginBottom: "16px",
         }}
       >
@@ -253,7 +251,7 @@ export default function ProfilClient() {
           </div>
         </div>
         {/* KPIs */}
-        <div style={{ display: "flex", gap: "32px", textAlign: "right", flexShrink: 0 }}>
+        <div className="profile-header-kpis">
           {[
             { val: confirmedPayments, label: `cotisation${confirmedPayments !== 1 ? "s" : ""} payée${confirmedPayments !== 1 ? "s" : ""}` },
             { val: presentCount, label: `présence${presentCount !== 1 ? "s" : ""}` },
@@ -268,7 +266,7 @@ export default function ProfilClient() {
       </div>
 
       {/* ── 2-column grid ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: "12px", alignItems: "start" }}>
+      <div className="grid-2col">
 
         {/* ── Colonne gauche : identité + paramètres ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -276,7 +274,7 @@ export default function ProfilClient() {
           {/* Identité */}
           <div style={SECTION}>
             <div style={SECTION_TITLE}>{t("identity")}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+            <div className="grid-2col" style={{ gap: "14px" }}>
               {[
                 { label: t("name"), value: user.name },
                 { label: t("email"), value: user.email },

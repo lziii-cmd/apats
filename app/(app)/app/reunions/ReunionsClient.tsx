@@ -17,71 +17,105 @@ type Meeting = {
   attendees: { preConfirmed: boolean }[];
 };
 
-type Props = {
-  meetings: Meeting[];
-  canCreate: boolean;
-  currentUserId: string;
+type Props = { meetings: Meeting[]; canCreate: boolean; currentUserId: string };
+
+const TYPE_STYLE: Record<Meeting["type"], { bg: string; color: string; label: string }> = {
+  BUREAU: { bg: "#E6F1FB", color: "#0C447C", label: "Bureau" },
+  AG: { bg: "#EEEDFE", color: "#3C3489", label: "Assemblée Générale" },
+  EXTRAORDINARY: { bg: "#FAEEDA", color: "#633806", label: "Extraordinaire" },
 };
 
-const TYPE_COLORS = {
-  BUREAU: "bg-blue-100 text-blue-700",
-  AG: "bg-green-100 text-green-700",
-  EXTRAORDINARY: "bg-orange-100 text-orange-700",
+const STATUS_STYLE: Record<Meeting["status"], { bg: string; color: string; label: string; icon: string }> = {
+  PLANNED: { bg: "var(--color-background-secondary)", color: "var(--color-text-secondary)", label: "Planifiée", icon: "ti-clock" },
+  OPEN: { bg: "#E1F5EE", color: "#085041", label: "En cours", icon: "ti-broadcast" },
+  CLOSED: { bg: "var(--color-background-secondary)", color: "var(--color-text-tertiary)", label: "Clôturée", icon: "ti-check" },
 };
 
-const STATUS_COLORS = {
-  PLANNED: "bg-gray-100 text-gray-600",
-  OPEN: "bg-emerald-100 text-emerald-700",
-  CLOSED: "bg-slate-100 text-slate-500",
-};
+const PILL = (active: boolean): React.CSSProperties => ({
+  fontSize: "11px", padding: "5px 11px", borderRadius: "999px", border: "none", cursor: "pointer",
+  fontWeight: active ? 500 : 400,
+  background: active ? "#14171c" : "var(--color-background-secondary)",
+  color: active ? "white" : "var(--color-text-secondary)",
+  whiteSpace: "nowrap" as const,
+});
 
 export default function ReunionsClient({ meetings, canCreate }: Props) {
   const t = useTranslations("app.reunions");
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"ALL" | "PLANNED" | "OPEN" | "CLOSED" | "BUREAU" | "AG" | "EXTRAORDINARY">("ALL");
 
   async function toggleConfirm(meeting: Meeting) {
     const isConfirmed = meeting.attendees[0]?.preConfirmed ?? false;
     setLoadingId(meeting.id);
     try {
-      await fetch(`/api/reunions/${meeting.id}/confirm`, {
-        method: isConfirmed ? "DELETE" : "POST",
-      });
+      await fetch(`/api/reunions/${meeting.id}/confirm`, { method: isConfirmed ? "DELETE" : "POST" });
       router.refresh();
     } finally {
       setLoadingId(null);
     }
   }
 
-  function formatDate(d: string) {
-    return new Date(d).toLocaleDateString("fr-FR", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric",
-    });
-  }
+  const filtered = meetings.filter((m) => {
+    if (filter === "ALL") return true;
+    if (["PLANNED", "OPEN", "CLOSED"].includes(filter)) return m.status === filter;
+    return m.type === filter;
+  });
 
-  function formatTime(d: string) {
-    return new Date(d).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  }
+  const upcoming = meetings.filter((m) => m.status !== "CLOSED");
+  const closedCount = meetings.filter((m) => m.status === "CLOSED").length;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">{t("title")}</h1>
+    <div style={{ padding: "22px 24px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "18px" }}>
+        <div>
+          <h1 style={{ fontSize: "20px", fontWeight: 500, margin: "0 0 2px" }}>{t("title")}</h1>
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>
+            {upcoming.length} à venir · {closedCount} clôturée{closedCount > 1 ? "s" : ""}
+          </p>
+        </div>
         {canCreate && (
           <Link
             href="/app/reunions/creer"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded transition-colors"
+            style={{
+              fontSize: "12px", padding: "7px 13px", display: "flex", alignItems: "center", gap: "6px",
+              background: "#14171c", color: "white", border: "1px solid #14171c",
+              borderRadius: "var(--border-radius-md)", textDecoration: "none",
+            }}
           >
-            + {t("create")}
+            <i className="ti ti-plus" style={{ fontSize: "13px" }} />
+            {t("create")}
           </Link>
         )}
       </div>
 
-      {meetings.length === 0 ? (
-        <p className="text-gray-500 text-sm">{t("noReunions")}</p>
+      {/* Filter pills */}
+      <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "16px", flexWrap: "wrap" }}>
+        <button style={PILL(filter === "ALL")} onClick={() => setFilter("ALL")}>Toutes · {meetings.length}</button>
+        <button style={PILL(filter === "PLANNED")} onClick={() => setFilter("PLANNED")}>À venir · {meetings.filter(m => m.status === "PLANNED").length}</button>
+        <button style={PILL(filter === "BUREAU")} onClick={() => setFilter("BUREAU")}>Bureau · {meetings.filter(m => m.type === "BUREAU").length}</button>
+        <button style={PILL(filter === "AG")} onClick={() => setFilter("AG")}>AG · {meetings.filter(m => m.type === "AG").length}</button>
+      </div>
+
+      {/* List */}
+      {filtered.length === 0 ? (
+        <div style={{ padding: "40px 0", textAlign: "center", color: "var(--color-text-tertiary)", fontSize: "13px" }}>
+          {t("noReunions")}
+        </div>
       ) : (
-        <div className="space-y-3">
-          {meetings.map((m) => {
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {filtered.map((m) => {
+            const date = new Date(m.date);
+            const day = date.getDate();
+            const monthLabel = date.toLocaleString("fr-FR", { month: "short" }).toUpperCase();
+            const year = date.getFullYear();
+            const time = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+            const endTimeStr = m.endTime
+              ? new Date(m.endTime).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+              : null;
+            const typeStyle = TYPE_STYLE[m.type];
+            const statusStyle = STATUS_STYLE[m.status];
             const isInvited = m.attendees.length > 0;
             const isConfirmed = m.attendees[0]?.preConfirmed ?? false;
             const isLoading = loadingId === m.id;
@@ -89,54 +123,79 @@ export default function ReunionsClient({ meetings, canCreate }: Props) {
             return (
               <div
                 key={m.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                style={{
+                  border: "0.5px solid var(--color-border-tertiary)",
+                  borderRadius: "var(--border-radius-md)",
+                  padding: "14px 16px",
+                  opacity: m.status === "CLOSED" ? 0.75 : 1,
+                }}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${TYPE_COLORS[m.type]}`}>
-                        {t({ BUREAU: "typeBureau", AG: "typeAG", EXTRAORDINARY: "typeExtraordinary" }[m.type] as never)}
+                <div style={{ display: "flex", gap: "14px", alignItems: "stretch" }}>
+                  {/* Mini date block */}
+                  <div
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                      minWidth: "52px", background: "var(--color-background-secondary)",
+                      borderRadius: "var(--border-radius-md)", padding: "8px",
+                    }}
+                  >
+                    <div style={{ fontSize: "9px", color: "var(--color-text-secondary)", letterSpacing: "0.5px" }}>{monthLabel}</div>
+                    <div style={{ fontSize: "22px", fontWeight: 500, lineHeight: 1 }}>{day}</div>
+                    <div style={{ fontSize: "9px", color: "var(--color-text-tertiary)", marginTop: "2px" }}>{year}</div>
+                  </div>
+
+                  {/* Content */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", background: typeStyle.bg, color: typeStyle.color, fontWeight: 500 }}>
+                        {typeStyle.label}
                       </span>
-                      <span className={`text-xs px-2 py-0.5 rounded ${STATUS_COLORS[m.status]}`}>
-                        {t({ PLANNED: "statusPlanned", OPEN: "statusOpen", CLOSED: "statusClosed" }[m.status] as never)}
+                      <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", background: statusStyle.bg, color: statusStyle.color, fontWeight: 500, display: "flex", alignItems: "center", gap: "3px" }}>
+                        <i className={`ti ${statusStyle.icon}`} style={{ fontSize: "10px" }} />
+                        {statusStyle.label}
                       </span>
                       {isConfirmed && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-teal-100 text-teal-700">
-                          ✓ {t("preConfirmedBadge")}
+                        <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", background: "#E1F5EE", color: "#085041", fontWeight: 500 }}>
+                          ✓ Confirmée
                         </span>
                       )}
                     </div>
-                    <p className="font-medium text-gray-900 truncate">{m.title}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {formatDate(m.date)} · {formatTime(m.date)}
-                      {m.endTime && ` → ${formatTime(m.endTime)}`}
-                    </p>
-                    <p className="text-sm text-gray-500">{m.location}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {t("attendeesCount", { count: m._count.attendees })}
-                    </p>
-                  </div>
 
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <Link
-                      href={`/app/reunions/${m.id}`}
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      {t("detail")}
-                    </Link>
-                    {isInvited && m.status === "PLANNED" && (
-                      <button
-                        onClick={() => toggleConfirm(m)}
-                        disabled={isLoading}
-                        className={`text-xs px-3 py-1.5 rounded transition-colors disabled:opacity-60 ${
-                          isConfirmed
-                            ? "border border-gray-300 text-gray-600 hover:bg-gray-50"
-                            : "bg-teal-600 hover:bg-teal-700 text-white"
-                        }`}
+                    <div style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>{m.title}</div>
+
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "14px", fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "10px" }}>
+                      <span><i className="ti ti-clock" style={{ fontSize: "12px", verticalAlign: "-2px", marginRight: "4px" }} />{time}{endTimeStr ? ` → ${endTimeStr}` : ""}</span>
+                      <span><i className="ti ti-map-pin" style={{ fontSize: "12px", verticalAlign: "-2px", marginRight: "4px" }} />{m.location}</span>
+                      <span><i className="ti ti-users" style={{ fontSize: "12px", verticalAlign: "-2px", marginRight: "4px" }} />{m._count.attendees} {t("attendeesCount", { count: m._count.attendees }).replace(/\d+/, "").trim() || "convoqué(s)"}</span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Link
+                        href={`/app/reunions/${m.id}`}
+                        style={{
+                          fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)",
+                          border: "0.5px solid var(--color-border-tertiary)", color: "var(--color-text-primary)",
+                          textDecoration: "none", background: "var(--color-background-primary)",
+                        }}
                       >
-                        {isLoading ? "…" : isConfirmed ? t("cancelPresence") : t("confirmPresence")}
-                      </button>
-                    )}
+                        {t("detail")}
+                      </Link>
+                      {isInvited && m.status === "PLANNED" && (
+                        <button
+                          onClick={() => toggleConfirm(m)}
+                          disabled={isLoading}
+                          style={{
+                            fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)",
+                            border: isConfirmed ? "0.5px solid var(--color-border-tertiary)" : "none",
+                            background: isConfirmed ? "transparent" : "#1D9E75",
+                            color: isConfirmed ? "var(--color-text-secondary)" : "white",
+                            cursor: "pointer", opacity: isLoading ? 0.6 : 1,
+                          }}
+                        >
+                          {isLoading ? "…" : isConfirmed ? t("cancelPresence") : t("confirmPresence")}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

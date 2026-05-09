@@ -62,11 +62,38 @@ type Dashboard = {
 
 const MONTH_KEYS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"] as const;
 
+const OVERLAY: React.CSSProperties = {
+  position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.4)",
+  display: "flex", alignItems: "center", justifyContent: "center",
+};
+const MODAL: React.CSSProperties = {
+  background: "var(--color-background-primary)", borderRadius: "var(--border-radius-lg)",
+  width: "100%", maxWidth: "400px", margin: "0 16px", padding: "24px",
+};
+const LABEL: React.CSSProperties = {
+  display: "block", fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "5px",
+};
+const INPUT: React.CSSProperties = {
+  width: "100%", border: "0.5px solid var(--color-border-tertiary)",
+  borderRadius: "var(--border-radius-md)", padding: "8px 12px", fontSize: "13px",
+  background: "var(--color-background-primary)", color: "var(--color-text-primary)",
+  outline: "none", boxSizing: "border-box" as const,
+};
+const BTN_PRI: React.CSSProperties = {
+  flex: 1, background: "#14171c", color: "white", border: "none",
+  borderRadius: "var(--border-radius-md)", padding: "9px 0", fontSize: "13px", cursor: "pointer",
+};
+const BTN_SEC: React.CSSProperties = {
+  flex: 1, background: "transparent", color: "var(--color-text-secondary)",
+  border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)",
+  padding: "9px 0", fontSize: "13px", cursor: "pointer",
+};
+
 function statusBadge(status: PaymentStatus, t: (k: string) => string) {
-  const map: Record<PaymentStatus, string> = {
-    CONFIRMED: "bg-green-100 text-green-700",
-    PENDING: "bg-yellow-100 text-yellow-700",
-    REJECTED: "bg-red-100 text-red-700",
+  const styles: Record<PaymentStatus, React.CSSProperties> = {
+    CONFIRMED: { background: "#E1F5EE", color: "#085041" },
+    PENDING:   { background: "#FAEEDA", color: "#633806" },
+    REJECTED:  { background: "#FBEAEA", color: "#791F1F" },
   };
   const labels: Record<PaymentStatus, string> = {
     CONFIRMED: t("confirmed"),
@@ -74,7 +101,7 @@ function statusBadge(status: PaymentStatus, t: (k: string) => string) {
     REJECTED: t("rejected"),
   };
   return (
-    <span className={`text-xs px-2 py-0.5 rounded font-medium ${map[status]}`}>
+    <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "4px", fontWeight: 500, ...styles[status] }}>
       {labels[status]}
     </span>
   );
@@ -105,7 +132,6 @@ export default function CotisationsClient({
   const [loadingSummary, setLoadingSummary] = useState(true);
   const [loadingDash, setLoadingDash] = useState(canView);
 
-  // Declare payment form state
   const [showDeclareForm, setShowDeclareForm] = useState(false);
   const [declareType, setDeclareType] = useState<"monthly" | "card">("monthly");
   const [declareMonth, setDeclareMonth] = useState(new Date().getMonth() + 1);
@@ -115,7 +141,6 @@ export default function CotisationsClient({
   const [declaring, setDeclaring] = useState(false);
   const [declareError, setDeclareError] = useState("");
 
-  // Reject form
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectType, setRejectType] = useState<"monthly" | "card">("monthly");
   const [rejectReason, setRejectReason] = useState("");
@@ -198,58 +223,97 @@ export default function CotisationsClient({
   );
 
   return (
-    <div className="p-6 max-w-4xl">
-      <h1 className="text-xl font-semibold mb-6">{t("title")}</h1>
+    <div style={{ padding: "22px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: 500, margin: 0 }}>{t("title")}</h1>
+      </div>
 
       {/* ── TABLEAU DE BORD trésorier ─────────────────────────────────── */}
       {canView && (
-        <div className="mb-8">
-          <h2 className="text-sm font-medium text-gray-700 mb-3">{t("stats")}</h2>
+        <div style={{ marginBottom: "24px" }}>
           {loadingDash ? (
-            <p className="text-sm text-gray-400">Chargement…</p>
+            <p style={{ fontSize: "13px", color: "var(--color-text-tertiary)" }}>Chargement…</p>
           ) : dashboard ? (
             <>
-              {/* Stats globales */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {/* KPI cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "14px" }}>
                 {[
-                  { label: t("rate"), value: `${dashboard.stats.rate}%`, color: "text-blue-700" },
-                  { label: t("totalAmount"), value: `${dashboard.stats.totalAmount.toLocaleString("fr-FR")} ${t("fcfa")}`, color: "text-green-700" },
-                  { label: t("overdueCount"), value: dashboard.stats.overdueCount, color: "text-red-700" },
-                  { label: t("cardStats", { year: dashboard.academicYear }), value: `${dashboard.stats.cardTaken} ${t("cardTakenCount")}`, color: "text-gray-700" },
+                  { label: t("rate"), value: `${dashboard.stats.rate}%`, icon: "ti-chart-pie", color: "#2B5FA3", bg: "#E6F1FB" },
+                  { label: t("totalAmount"), value: `${dashboard.stats.totalAmount.toLocaleString("fr-FR")} FCFA`, icon: "ti-wallet", color: "#085041", bg: "#E1F5EE" },
+                  { label: t("overdueCount"), value: String(dashboard.stats.overdueCount), icon: "ti-alert-triangle", color: "#791F1F", bg: "#FBEAEA" },
+                  { label: t("cardStats", { year: dashboard.academicYear }), value: `${dashboard.stats.cardTaken} prise${dashboard.stats.cardTaken > 1 ? "s" : ""}`, icon: "ti-id-badge", color: "#633806", bg: "#FAEEDA" },
                 ].map((s, i) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{s.label}</p>
-                    <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
+                  <div
+                    key={i}
+                    style={{
+                      border: "0.5px solid var(--color-border-tertiary)",
+                      borderRadius: "var(--border-radius-md)",
+                      padding: "14px 16px",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      <div style={{
+                        width: "28px", height: "28px", borderRadius: "6px",
+                        background: s.bg, display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <i className={`ti ${s.icon}`} style={{ fontSize: "14px", color: s.color }} />
+                      </div>
+                      <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>{s.label}</span>
+                    </div>
+                    <div style={{ fontSize: "18px", fontWeight: 600, color: s.color }}>{s.value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Paiements en attente */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">{t("pendingPayments")}</h3>
-                {dashboard.pendingMonthly.length === 0 && dashboard.pendingCards.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t("nopending")}</p>
-                ) : (
-                  <div className="space-y-2">
+              {(dashboard.pendingMonthly.length > 0 || dashboard.pendingCards.length > 0) && (
+                <div
+                  style={{
+                    border: "0.5px solid var(--color-border-tertiary)",
+                    borderRadius: "var(--border-radius-md)",
+                    padding: "16px 18px",
+                  }}
+                >
+                  <div style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)", marginBottom: "10px" }}>
+                    {t("pendingPayments")}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     {dashboard.pendingCards.map((c) => (
-                      <div key={c.id} className="flex items-center justify-between text-sm py-2 border-b border-gray-100 last:border-0">
-                        <div>
-                          <span className="font-medium">{c.user.name}</span>
-                          <span className="ml-2 text-gray-500">Carte {c.academicYear}</span>
-                          <span className="ml-2 text-gray-400">{modeLabel(c.paymentMode, t)}</span>
-                          {c.paymentRef && <span className="ml-2 text-xs text-gray-400 font-mono">{c.paymentRef}</span>}
+                      <div
+                        key={c.id}
+                        style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          padding: "9px 0", borderBottom: "0.5px solid var(--color-border-tertiary)",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 500 }}>{c.user.name}</span>
+                          <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>
+                            Carte {c.academicYear} · {modeLabel(c.paymentMode, t)}
+                          </span>
+                          {c.paymentRef && (
+                            <span style={{ fontSize: "10.5px", color: "var(--color-text-tertiary)", fontFamily: "monospace" }}>
+                              {c.paymentRef}
+                            </span>
+                          )}
                         </div>
                         {canConfirm && (
-                          <div className="flex gap-2">
+                          <div style={{ display: "flex", gap: "6px" }}>
                             <button
                               onClick={() => handleConfirm(c.id, "card")}
-                              className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded transition-colors"
+                              style={{
+                                fontSize: "11px", padding: "4px 10px", borderRadius: "var(--border-radius-md)",
+                                background: "#E1F5EE", color: "#085041", border: "none", cursor: "pointer",
+                              }}
                             >
                               {t("confirmAction")}
                             </button>
                             <button
                               onClick={() => { setRejectingId(c.id); setRejectType("card"); }}
-                              className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors"
+                              style={{
+                                fontSize: "11px", padding: "4px 10px", borderRadius: "var(--border-radius-md)",
+                                background: "#FBEAEA", color: "#791F1F", border: "none", cursor: "pointer",
+                              }}
                             >
                               {t("rejectAction")}
                             </button>
@@ -258,25 +322,44 @@ export default function CotisationsClient({
                       </div>
                     ))}
                     {dashboard.pendingMonthly.map((p) => (
-                      <div key={p.id} className="flex items-center justify-between text-sm py-2 border-b border-gray-100 last:border-0">
-                        <div>
-                          <span className="font-medium">{p.user.name}</span>
-                          <span className="ml-2 text-gray-500">{p.month}/{p.year}</span>
-                          <span className="ml-2 text-gray-400">{modeLabel(p.paymentMode, t)}</span>
-                          {p.paymentRef && <span className="ml-2 text-xs text-gray-400 font-mono">{p.paymentRef}</span>}
-                          <span className="ml-2 text-gray-700 font-medium">{p.amountPaid.toLocaleString("fr-FR")} {t("fcfa")}</span>
+                      <div
+                        key={p.id}
+                        style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          padding: "9px 0", borderBottom: "0.5px solid var(--color-border-tertiary)",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 500 }}>{p.user.name}</span>
+                          <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>
+                            {p.month}/{p.year} · {modeLabel(p.paymentMode, t)}
+                          </span>
+                          {p.paymentRef && (
+                            <span style={{ fontSize: "10.5px", color: "var(--color-text-tertiary)", fontFamily: "monospace" }}>
+                              {p.paymentRef}
+                            </span>
+                          )}
+                          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)" }}>
+                            {p.amountPaid.toLocaleString("fr-FR")} {t("fcfa")}
+                          </span>
                         </div>
                         {canConfirm && (
-                          <div className="flex gap-2">
+                          <div style={{ display: "flex", gap: "6px" }}>
                             <button
                               onClick={() => handleConfirm(p.id, "monthly")}
-                              className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded transition-colors"
+                              style={{
+                                fontSize: "11px", padding: "4px 10px", borderRadius: "var(--border-radius-md)",
+                                background: "#E1F5EE", color: "#085041", border: "none", cursor: "pointer",
+                              }}
                             >
                               {t("confirmAction")}
                             </button>
                             <button
                               onClick={() => { setRejectingId(p.id); setRejectType("monthly"); }}
-                              className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors"
+                              style={{
+                                fontSize: "11px", padding: "4px 10px", borderRadius: "var(--border-radius-md)",
+                                background: "#FBEAEA", color: "#791F1F", border: "none", cursor: "pointer",
+                              }}
                             >
                               {t("rejectAction")}
                             </button>
@@ -285,8 +368,8 @@ export default function CotisationsClient({
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </>
           ) : null}
         </div>
@@ -294,32 +377,50 @@ export default function CotisationsClient({
 
       {/* ── MES COTISATIONS ───────────────────────────────────────────── */}
       {loadingSummary ? (
-        <p className="text-sm text-gray-400">Chargement…</p>
+        <p style={{ fontSize: "13px", color: "var(--color-text-tertiary)" }}>Chargement…</p>
       ) : summary ? (
-        <>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {/* Carte de membre */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-medium text-gray-700">{t("myCard")} — {summary.academicYear}</h2>
-              <span className="text-xs text-gray-500">{summary.cardPriceFcfa.toLocaleString("fr-FR")} {t("fcfa")}</span>
+          <div
+            style={{
+              border: "0.5px solid var(--color-border-tertiary)",
+              borderRadius: "var(--border-radius-md)",
+              padding: "16px 18px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)" }}>
+                {t("myCard")} — {summary.academicYear}
+              </div>
+              <span style={{ fontSize: "11px", color: "var(--color-text-tertiary)" }}>
+                {summary.cardPriceFcfa.toLocaleString("fr-FR")} {t("fcfa")}
+              </span>
             </div>
+
             {summary.card ? (
-              <div className="flex items-center gap-3">
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 {statusBadge(summary.card.status, t)}
-                <span className="text-sm text-gray-600">{modeLabel(summary.card.paymentMode, t)}</span>
+                <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>
+                  {modeLabel(summary.card.paymentMode, t)}
+                </span>
                 {summary.card.paymentRef && (
-                  <span className="text-xs font-mono text-gray-400">{summary.card.paymentRef}</span>
+                  <span style={{ fontSize: "11px", color: "var(--color-text-tertiary)", fontFamily: "monospace" }}>
+                    {summary.card.paymentRef}
+                  </span>
                 )}
                 {summary.card.status === "REJECTED" && summary.card.rejectReason && (
-                  <span className="text-xs text-red-600">Motif : {summary.card.rejectReason}</span>
+                  <span style={{ fontSize: "11px", color: "#791F1F" }}>Motif : {summary.card.rejectReason}</span>
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-500">{t("cardNotTaken")}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "12px", color: "var(--color-text-tertiary)" }}>{t("cardNotTaken")}</span>
                 <button
                   onClick={() => { setDeclareType("card"); setShowDeclareForm(true); }}
-                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors"
+                  style={{
+                    fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)",
+                    background: "#14171c", color: "white", border: "none", cursor: "pointer",
+                  }}
                 >
                   {t("takeCard")}
                 </button>
@@ -327,148 +428,173 @@ export default function CotisationsClient({
             )}
           </div>
 
-          {/* Grille mensuelle — année courante */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-medium text-gray-700">{t("myPayments")}</h2>
+          {/* Grille mensuelle */}
+          <div
+            style={{
+              border: "0.5px solid var(--color-border-tertiary)",
+              borderRadius: "var(--border-radius-md)",
+              padding: "16px 18px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)" }}>{t("myPayments")}</div>
               <button
                 onClick={() => { setDeclareType("monthly"); setShowDeclareForm(true); }}
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors"
+                style={{
+                  fontSize: "11px", padding: "5px 12px", borderRadius: "var(--border-radius-md)",
+                  background: "#14171c", color: "white", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: "5px",
+                }}
               >
+                <i className="ti ti-plus" style={{ fontSize: "12px" }} />
                 {t("declarePayment")}
               </button>
             </div>
 
-            {/* Grille 12 mois de l'année académique courante */}
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {/* 12-month grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "6px", marginBottom: "16px" }}>
               {Array.from({ length: 12 }, (_, i) => {
                 const month = i + 1;
                 const year = new Date().getFullYear();
                 const key = `${year}-${month}`;
-                const isExpected = summary.expectedMonths.some((m) => m.year === year && m.month === month);
                 const isPaid = paidSet.has(key);
                 const isOverdue = overdueSet.has(key);
                 const paymentForMonth = summary.payments.find((p) => p.year === year && p.month === month);
+                const isExpected = summary.expectedMonths.some((m) => m.year === year && m.month === month);
 
-                let cellClass = "rounded-lg p-2 text-center text-xs ";
-                let statusText = "";
+                let cellStyle: React.CSSProperties;
+                let statusText: string;
+
                 if (isPaid) {
-                  cellClass += "bg-green-50 border border-green-200 text-green-700";
+                  cellStyle = { background: "#E1F5EE", border: "0.5px solid #A7E3CC", color: "#085041" };
                   statusText = t("paid");
-                } else if (isOverdue) {
-                  cellClass += "bg-red-50 border border-red-200 text-red-700";
+                } else if (isOverdue || isExpected) {
+                  cellStyle = { background: "#FBEAEA", border: "0.5px solid #F5BEBE", color: "#791F1F" };
                   statusText = t("overdue");
                 } else if (paymentForMonth?.status === "PENDING") {
-                  cellClass += "bg-yellow-50 border border-yellow-200 text-yellow-700";
+                  cellStyle = { background: "#FAEEDA", border: "0.5px solid #F5D9A8", color: "#633806" };
                   statusText = t("pending");
-                } else if (isExpected) {
-                  cellClass += "bg-orange-50 border border-orange-200 text-orange-600";
-                  statusText = t("overdue");
                 } else {
-                  cellClass += "bg-gray-50 border border-gray-200 text-gray-400";
+                  cellStyle = { background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-tertiary)", color: "var(--color-text-tertiary)" };
                   statusText = t("notDue");
                 }
 
                 return (
-                  <div key={month} className={cellClass}>
-                    <div className="font-medium">{t(MONTH_KEYS[i])}</div>
-                    <div className="mt-0.5">{statusText}</div>
+                  <div
+                    key={month}
+                    style={{
+                      borderRadius: "var(--border-radius-md)", padding: "8px 4px",
+                      textAlign: "center", fontSize: "10.5px", ...cellStyle,
+                    }}
+                  >
+                    <div style={{ fontWeight: 500 }}>{t(MONTH_KEYS[i])}</div>
+                    <div style={{ marginTop: "2px", opacity: 0.85 }}>{statusText}</div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Historique complet */}
+            {/* Payment history */}
             {summary.payments.length > 0 && (
-              <div className="mt-4 space-y-1">
+              <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: "12px" }}>
                 {summary.payments.slice(0, 12).map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-xs py-1.5 border-b border-gray-100 last:border-0">
-                    <span className="text-gray-600 tabular-nums">{p.month}/{p.year}</span>
-                    <span className="text-gray-600">{modeLabel(p.paymentMode, t)}</span>
-                    <span className="font-medium tabular-nums">{p.amountPaid.toLocaleString("fr-FR")} {t("fcfa")}</span>
+                  <div
+                    key={p.id}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "7px 0", borderBottom: "0.5px solid var(--color-border-tertiary)",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <span style={{ color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                      {p.month}/{p.year}
+                    </span>
+                    <span style={{ color: "var(--color-text-secondary)" }}>{modeLabel(p.paymentMode, t)}</span>
+                    <span style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                      {p.amountPaid.toLocaleString("fr-FR")} {t("fcfa")}
+                    </span>
                     {statusBadge(p.status, t)}
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </>
+        </div>
       ) : null}
 
-      {/* ── MODAL DÉCLARATION ────────────────────────────────────────── */}
+      {/* Modal — déclaration */}
       {showDeclareForm && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6">
-            <h3 className="font-semibold text-gray-800 mb-4">
+        <div style={OVERLAY}>
+          <div style={MODAL}>
+            <h3 style={{ fontSize: "15px", fontWeight: 500, margin: "0 0 18px" }}>
               {declareType === "card" ? t("takeCard") : t("declarePayment")}
             </h3>
 
-            {declareType === "monthly" && (
-              <div className="flex gap-2 mb-3">
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">{t("month")}</label>
-                  <select
-                    value={declareMonth}
-                    onChange={(e) => setDeclareMonth(Number(e.target.value))}
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <option key={i + 1} value={i + 1}>{t(MONTH_KEYS[i])}</option>
-                    ))}
-                  </select>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {declareType === "monthly" && (
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={LABEL}>{t("month")}</label>
+                    <select
+                      value={declareMonth}
+                      onChange={(e) => setDeclareMonth(Number(e.target.value))}
+                      style={INPUT}
+                    >
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>{t(MONTH_KEYS[i])}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={LABEL}>{t("year")}</label>
+                    <input
+                      type="number"
+                      value={declareYear}
+                      onChange={(e) => setDeclareYear(Number(e.target.value))}
+                      style={INPUT}
+                      min={2020}
+                      max={2099}
+                    />
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">{t("year")}</label>
-                  <input
-                    type="number"
-                    value={declareYear}
-                    onChange={(e) => setDeclareYear(Number(e.target.value))}
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min={2020}
-                    max={2099}
-                  />
-                </div>
+              )}
+
+              <div>
+                <label style={LABEL}>{t("paymentMode")}</label>
+                <select
+                  value={declareMode}
+                  onChange={(e) => setDeclareMode(e.target.value as PaymentMode)}
+                  style={INPUT}
+                >
+                  <option value="WAVE">{t("wave")}</option>
+                  <option value="ORANGE_MONEY">{t("orangeMoney")}</option>
+                </select>
               </div>
-            )}
 
-            <div className="mb-3">
-              <label className="block text-xs text-gray-500 mb-1">{t("paymentMode")}</label>
-              <select
-                value={declareMode}
-                onChange={(e) => setDeclareMode(e.target.value as PaymentMode)}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="WAVE">{t("wave")}</option>
-                <option value="ORANGE_MONEY">{t("orangeMoney")}</option>
-              </select>
+              <div>
+                <label style={LABEL}>{t("paymentRef")}</label>
+                <input
+                  type="text"
+                  value={declareRef}
+                  onChange={(e) => setDeclareRef(e.target.value)}
+                  placeholder={t("paymentRefHint")}
+                  style={INPUT}
+                />
+              </div>
+
+              {declareError && (
+                <p style={{ fontSize: "12px", color: "#791F1F", margin: 0 }}>{declareError}</p>
+              )}
             </div>
 
-            <div className="mb-4">
-              <label className="block text-xs text-gray-500 mb-1">{t("paymentRef")}</label>
-              <input
-                type="text"
-                value={declareRef}
-                onChange={(e) => setDeclareRef(e.target.value)}
-                placeholder={t("paymentRefHint")}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {declareError && (
-              <p className="text-xs text-red-600 mb-3">{declareError}</p>
-            )}
-
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => { setShowDeclareForm(false); setDeclareError(""); }}
-                className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5"
-              >
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button onClick={() => { setShowDeclareForm(false); setDeclareError(""); }} style={BTN_SEC}>
                 {tc("cancel")}
               </button>
               <button
                 onClick={handleDeclare}
                 disabled={declaring}
-                className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded disabled:opacity-50 transition-colors"
+                style={{ ...BTN_PRI, opacity: declaring ? 0.6 : 1 }}
               >
                 {declaring ? "…" : tc("confirm")}
               </button>
@@ -477,31 +603,28 @@ export default function CotisationsClient({
         </div>
       )}
 
-      {/* ── MODAL REJET ──────────────────────────────────────────────── */}
+      {/* Modal — rejet */}
       {rejectingId && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6">
-            <h3 className="font-semibold text-gray-800 mb-4">{t("rejectDialog")}</h3>
-            <div className="mb-4">
-              <label className="block text-xs text-gray-500 mb-1">{t("rejectReason")}</label>
+        <div style={OVERLAY}>
+          <div style={MODAL}>
+            <h3 style={{ fontSize: "15px", fontWeight: 500, margin: "0 0 18px" }}>{t("rejectDialog")}</h3>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={LABEL}>{t("rejectReason")}</label>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={3}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ ...INPUT, resize: "none" }}
               />
             </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => { setRejectingId(null); setRejectReason(""); }}
-                className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5"
-              >
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => { setRejectingId(null); setRejectReason(""); }} style={BTN_SEC}>
                 {tc("cancel")}
               </button>
               <button
                 onClick={handleReject}
                 disabled={!rejectReason.trim()}
-                className="text-sm bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded disabled:opacity-50 transition-colors"
+                style={{ ...BTN_PRI, background: "#791F1F", opacity: !rejectReason.trim() ? 0.5 : 1 }}
               >
                 {t("rejectAction")}
               </button>

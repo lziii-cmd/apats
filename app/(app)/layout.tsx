@@ -1,74 +1,73 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getSession } from "@/lib/auth";
 import { getUserFeatures } from "@/lib/permissions";
-import LocaleSwitcher from "@/components/LocaleSwitcher";
+import { db } from "@/lib/db";
+import SidebarNav from "@/components/SidebarNav";
 import NotificationBell from "@/components/NotificationBell";
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const t = await getTranslations("app.nav");
-  const features = await getUserFeatures(session.userId);
+  const [t, features, user] = await Promise.all([
+    getTranslations("app.nav"),
+    getUserFeatures(session.userId),
+    db.user.findUnique({ where: { id: session.userId }, select: { name: true } }),
+  ]);
 
   const canSee = (feature: string) =>
     session.role === "ADMIN" || features.includes(feature as never);
 
+  const userName = user?.name ?? session.email.split("@")[0];
+  const userInitials = getInitials(userName);
+  const userRole = session.role === "ADMIN" ? "Administrateur" : "Membre";
+
+  const navItems = [
+    { href: "/app", icon: "ti-layout-dashboard", label: t("dashboard"), show: true },
+    { href: "/app/membres", icon: "ti-users", label: t("membres"), show: canSee("MEMBERS_VIEW") },
+    { href: "/app/cotisations", icon: "ti-credit-card", label: t("cotisations"), show: true },
+    { href: "/app/reunions", icon: "ti-calendar-event", label: t("reunions"), show: true },
+    { href: "/app/evenements", icon: "ti-confetti", label: t("evenements"), show: true },
+    { href: "/app/tresorerie", icon: "ti-wallet", label: t("tresorerie"), show: canSee("TREASURY_VIEW") },
+    { href: "/app/communication", icon: "ti-bell", label: t("communication"), show: true },
+    { href: "/app/profil", icon: "ti-user-circle", label: t("profil"), show: true },
+  ];
+
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-56 bg-gray-800 text-gray-100 flex flex-col py-6 px-4 gap-1 shrink-0">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
-          Amicale APATS
-        </span>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <SidebarNav
+        userName={userName}
+        userRole={userRole}
+        userInitials={userInitials}
+        navItems={navItems}
+      />
 
-        <Link href="/app" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-          {t("dashboard")}
-        </Link>
-
-        {canSee("MEMBERS_VIEW") && (
-          <Link href="/app/membres" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-            {t("membres")}
-          </Link>
-        )}
-
-        <Link href="/app/cotisations" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-          {t("cotisations")}
-        </Link>
-
-        <Link href="/app/reunions" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-          {t("reunions")}
-        </Link>
-
-        <Link href="/app/evenements" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-          {t("evenements")}
-        </Link>
-
-        {canSee("TREASURY_VIEW") && (
-          <Link href="/app/tresorerie" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-            {t("tresorerie")}
-          </Link>
-        )}
-
-        <Link href="/app/communication" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-          {t("communication")}
-        </Link>
-
-        <Link href="/app/profil" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
-          {t("profil")}
-        </Link>
-
-        <div className="mt-auto pt-4 border-t border-gray-700">
-          <LocaleSwitcher />
-        </div>
-      </aside>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-12 bg-white border-b border-gray-200 flex items-center justify-end px-4 shrink-0">
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+        <header
+          style={{
+            height: "48px",
+            background: "var(--color-background-primary)",
+            borderBottom: "0.5px solid var(--color-border-tertiary)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            padding: "0 24px",
+            flexShrink: 0,
+          }}
+        >
           <NotificationBell />
         </header>
-        <div className="flex-1 overflow-auto">{children}</div>
+
+        <main style={{ flex: 1, overflowY: "auto" }}>
+          {children}
+        </main>
       </div>
     </div>
   );

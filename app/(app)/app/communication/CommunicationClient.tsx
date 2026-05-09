@@ -29,6 +29,48 @@ type Props = {
   members: Member[];
 };
 
+const OVERLAY: React.CSSProperties = {
+  position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.4)",
+  display: "flex", alignItems: "center", justifyContent: "center",
+};
+const MODAL: React.CSSProperties = {
+  background: "var(--color-background-primary)", borderRadius: "var(--border-radius-lg)",
+  width: "100%", maxWidth: "520px", margin: "0 16px",
+  padding: "24px", maxHeight: "90vh", overflowY: "auto",
+};
+const LABEL: React.CSSProperties = {
+  display: "block", fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "5px",
+};
+const INPUT: React.CSSProperties = {
+  width: "100%", border: "0.5px solid var(--color-border-tertiary)",
+  borderRadius: "var(--border-radius-md)", padding: "8px 12px", fontSize: "13px",
+  background: "var(--color-background-primary)", color: "var(--color-text-primary)",
+  outline: "none", boxSizing: "border-box" as const,
+};
+const BTN_PRI: React.CSSProperties = {
+  flex: 1, background: "#14171c", color: "white", border: "none",
+  borderRadius: "var(--border-radius-md)", padding: "9px 0", fontSize: "13px", cursor: "pointer",
+};
+const BTN_SEC: React.CSSProperties = {
+  flex: 1, background: "transparent", color: "var(--color-text-secondary)",
+  border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)",
+  padding: "9px 0", fontSize: "13px", cursor: "pointer",
+};
+
+const AUTHOR_COLORS = ["#1D9E75", "#534AB7", "#2B5FA3", "#8B3A3A", "#5A7A2E", "#7A4F1D", "#C45E10", "#0F6E8E"];
+
+function authorColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return AUTHOR_COLORS[Math.abs(h) % AUTHOR_COLORS.length];
+}
+
+function getInitials(name: string): string {
+  const p = name.trim().split(/\s+/);
+  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+  return (p[0][0] + p[p.length - 1][0]).toUpperCase();
+}
+
 export default function CommunicationClient({
   canCreate, isAdmin, currentUserId, categories, posts, members,
 }: Props) {
@@ -169,85 +211,178 @@ export default function CommunicationClient({
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+    <div style={{ padding: "22px 24px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+        <div>
+          <h1 style={{ fontSize: "20px", fontWeight: 500, margin: "0 0 2px" }}>{t("title")}</h1>
+          <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: 0 }}>
+            {announcements.length} annonce{announcements.length > 1 ? "s" : ""}
+          </p>
+        </div>
         {canCreate && (
-          <button onClick={() => setShowForm(true)}
-            className="text-sm bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded transition-colors">
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              fontSize: "12px", padding: "7px 13px", display: "flex", alignItems: "center", gap: "6px",
+              background: "#14171c", color: "white", border: "1px solid #14171c",
+              borderRadius: "var(--border-radius-md)", cursor: "pointer",
+            }}
+          >
+            <i className="ti ti-plus" style={{ fontSize: "13px" }} />
             {t("newAnnouncement")}
           </button>
         )}
       </div>
 
-      {/* Fil d'annonces */}
+      {/* Feed */}
       {loading ? (
-        <p className="text-sm text-gray-500">{tc("loading")}</p>
+        <div style={{ padding: "40px 0", textAlign: "center", color: "var(--color-text-tertiary)", fontSize: "13px" }}>
+          {tc("loading")}
+        </div>
       ) : fetchError ? (
-        <p className="text-sm text-red-500">{fetchError}</p>
+        <div style={{
+          padding: "12px 16px", borderRadius: "var(--border-radius-md)",
+          background: "#FEF2F2", border: "0.5px solid #FECACA",
+          color: "#991B1B", fontSize: "13px",
+        }}>
+          <i className="ti ti-alert-circle" style={{ fontSize: "14px", verticalAlign: "-2px", marginRight: "6px" }} />
+          {fetchError}
+        </div>
       ) : announcements.length === 0 ? (
-        <p className="text-sm text-gray-500">{t("noAnnouncements")}</p>
+        <div style={{ padding: "40px 0", textAlign: "center", color: "var(--color-text-tertiary)", fontSize: "13px" }}>
+          {t("noAnnouncements")}
+        </div>
       ) : (
-        <div className="space-y-4">
-          {announcements.map((a) => (
-            <div key={a.id} className="bg-white border border-gray-200 rounded-lg p-5">
-              <div className="flex items-start justify-between gap-4 mb-2">
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-gray-900 text-base">{a.title}</h2>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-xs text-gray-400">{formatDate(a.createdAt)}</span>
-                    <span className="text-xs text-gray-400">·</span>
-                    <span className="text-xs text-gray-500">{t("by")} {a.createdBy.name}</span>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                      {targetBadge(a)}
-                    </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {announcements.map((a) => {
+            const color = authorColor(a.createdBy.name);
+            const initials = getInitials(a.createdBy.name);
+            return (
+              <div
+                key={a.id}
+                style={{
+                  border: "0.5px solid var(--color-border-tertiary)",
+                  borderLeft: `3px solid ${color}`,
+                  borderRadius: "var(--border-radius-md)",
+                  padding: "14px 16px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                  {/* Author avatar */}
+                  <div
+                    style={{
+                      width: "34px", height: "34px", borderRadius: "50%",
+                      background: color, color: "white",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "11px", fontWeight: 500, flexShrink: 0,
+                    }}
+                  >
+                    {initials}
                   </div>
+
+                  {/* Body */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Meta row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "5px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)" }}>
+                        {a.createdBy.name}
+                      </span>
+                      <span style={{ fontSize: "10.5px", color: "var(--color-text-tertiary)" }}>
+                        {formatDate(a.createdAt)}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "10px", padding: "2px 8px", borderRadius: "999px",
+                          background: "var(--color-background-secondary)",
+                          color: "var(--color-text-secondary)",
+                        }}
+                      >
+                        {targetBadge(a)}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <div style={{ fontSize: "13.5px", fontWeight: 500, marginBottom: "6px", color: "var(--color-text-primary)" }}>
+                      {a.title}
+                    </div>
+
+                    {/* Content */}
+                    <p
+                      style={{
+                        fontSize: "12.5px", color: "var(--color-text-secondary)", margin: 0,
+                        whiteSpace: "pre-wrap", lineHeight: 1.5,
+                      }}
+                    >
+                      {a.content}
+                    </p>
+                  </div>
+
+                  {/* Delete button */}
+                  {(isAdmin || a.createdById === currentUserId) && (
+                    <button
+                      onClick={() => setDeleteId(a.id)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "var(--color-text-tertiary)", padding: "2px", flexShrink: 0,
+                        lineHeight: 1,
+                      }}
+                      title={tc("delete")}
+                    >
+                      <i className="ti ti-trash" style={{ fontSize: "15px" }} />
+                    </button>
+                  )}
                 </div>
-                {(isAdmin || a.createdById === currentUserId) && (
-                  <button onClick={() => setDeleteId(a.id)}
-                    className="text-xs text-red-500 hover:text-red-700 shrink-0 transition-colors">
-                    {tc("delete")}
-                  </button>
-                )}
               </div>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap mt-3">{a.content}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Modal création */}
+      {/* Modal — nouvelle annonce */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-base font-semibold mb-4">{t("newAnnouncement")}</h2>
-            <div className="space-y-3">
+        <div style={OVERLAY}>
+          <div style={MODAL}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
+              <h2 style={{ fontSize: "15px", fontWeight: 500, margin: 0 }}>{t("newAnnouncement")}</h2>
+              <button
+                onClick={() => { setShowForm(false); resetForm(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-tertiary)", lineHeight: 1 }}
+              >
+                <i className="ti ti-x" style={{ fontSize: "18px" }} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">{t("announcementTitle")}</label>
-                <input type="text" value={form.title}
+                <label style={LABEL}>{t("announcementTitle")}</label>
+                <input
+                  type="text"
+                  value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  placeholder={t("announcementTitle")} />
+                  style={INPUT}
+                  placeholder={t("announcementTitle")}
+                />
               </div>
+
               <div>
-                <label className="block text-xs text-gray-600 mb-1">{t("announcementContent")}</label>
-                <textarea value={form.content}
+                <label style={LABEL}>{t("announcementContent")}</label>
+                <textarea
+                  value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
                   rows={5}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none"
-                  placeholder={t("contentPlaceholder")} />
+                  style={{ ...INPUT, resize: "none" }}
+                  placeholder={t("contentPlaceholder")}
+                />
               </div>
+
               <div>
-                <label className="block text-xs text-gray-600 mb-1">{t("targetType")}</label>
-                <select value={form.targetType}
-                  onChange={(e) => setForm({
-                    ...form,
-                    targetType: e.target.value,
-                    targetCategoryId: "",
-                    targetPostIds: [],
-                    targetUserIds: [],
-                  })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                <label style={LABEL}>{t("targetType")}</label>
+                <select
+                  value={form.targetType}
+                  onChange={(e) => setForm({ ...form, targetType: e.target.value, targetCategoryId: "", targetPostIds: [], targetUserIds: [] })}
+                  style={INPUT}
+                >
                   <option value="ALL">{t("targetAll")}</option>
                   <option value="BUREAU">{t("targetBureau")}</option>
                   <option value="HORS_BUREAU">{t("targetHorsBureau")}</option>
@@ -259,10 +394,12 @@ export default function CommunicationClient({
 
               {form.targetType === "CATEGORY" && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">{t("targetCategoryLabel")}</label>
-                  <select value={form.targetCategoryId}
+                  <label style={LABEL}>{t("targetCategoryLabel")}</label>
+                  <select
+                    value={form.targetCategoryId}
                     onChange={(e) => setForm({ ...form, targetCategoryId: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    style={INPUT}
+                  >
                     <option value="">— {t("choose")} —</option>
                     {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -271,23 +408,39 @@ export default function CommunicationClient({
 
               {form.targetType === "POST" && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-2">{t("targetPostLabel")}</label>
-                  <div className="border border-gray-200 rounded p-2 space-y-1 max-h-44 overflow-y-auto">
-                    {posts.map((p) => (
-                      <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-                        <input type="checkbox"
+                  <label style={LABEL}>{t("targetPostLabel")}</label>
+                  <div
+                    style={{
+                      border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)",
+                      padding: "8px", maxHeight: "176px", overflowY: "auto",
+                      display: "flex", flexDirection: "column", gap: "2px",
+                    }}
+                  >
+                    {posts.length === 0 ? (
+                      <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", padding: "4px 8px", margin: 0 }}>
+                        {t("noPosts")}
+                      </p>
+                    ) : posts.map((p) => (
+                      <label
+                        key={p.id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: "8px", cursor: "pointer",
+                          fontSize: "13px", color: "var(--color-text-primary)",
+                          padding: "5px 8px", borderRadius: "5px",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
                           checked={form.targetPostIds.includes(p.id)}
                           onChange={() => togglePostId(p.id)}
-                          className="accent-teal-600" />
+                          style={{ accentColor: "var(--color-accent)" }}
+                        />
                         {p.name}
                       </label>
                     ))}
-                    {posts.length === 0 && (
-                      <p className="text-xs text-gray-400 px-2 py-1">{t("noPosts")}</p>
-                    )}
                   </div>
                   {form.targetPostIds.length > 0 && (
-                    <p className="text-xs text-teal-700 mt-1">
+                    <p style={{ fontSize: "11px", color: "var(--color-accent)", marginTop: "4px" }}>
                       {form.targetPostIds.length} {t("selectedPosts")}
                     </p>
                   )}
@@ -296,39 +449,59 @@ export default function CommunicationClient({
 
               {form.targetType === "SELECT" && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-2">{t("targetSelectLabel")}</label>
-                  <div className="border border-gray-200 rounded p-2 space-y-1 max-h-48 overflow-y-auto">
-                    {members.map((m) => (
-                      <label key={m.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
-                        <input type="checkbox"
+                  <label style={LABEL}>{t("targetSelectLabel")}</label>
+                  <div
+                    style={{
+                      border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)",
+                      padding: "8px", maxHeight: "192px", overflowY: "auto",
+                      display: "flex", flexDirection: "column", gap: "2px",
+                    }}
+                  >
+                    {members.length === 0 ? (
+                      <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", padding: "4px 8px", margin: 0 }}>
+                        {t("noMembers")}
+                      </p>
+                    ) : members.map((m) => (
+                      <label
+                        key={m.id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: "8px", cursor: "pointer",
+                          fontSize: "13px", color: "var(--color-text-primary)",
+                          padding: "5px 8px", borderRadius: "5px",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
                           checked={form.targetUserIds.includes(m.id)}
                           onChange={() => toggleUserId(m.id)}
-                          className="accent-teal-600" />
+                          style={{ accentColor: "var(--color-accent)" }}
+                        />
                         {m.name}
                       </label>
                     ))}
-                    {members.length === 0 && (
-                      <p className="text-xs text-gray-400 px-2 py-1">{t("noMembers")}</p>
-                    )}
                   </div>
                   {form.targetUserIds.length > 0 && (
-                    <p className="text-xs text-teal-700 mt-1">
+                    <p style={{ fontSize: "11px", color: "var(--color-accent)", marginTop: "4px" }}>
                       {form.targetUserIds.length} {t("selectedMembers")}
                     </p>
                   )}
                 </div>
               )}
 
-              {formError && <p className="text-xs text-red-600">{formError}</p>}
+              {formError && (
+                <p style={{ fontSize: "12px", color: "#991B1B", margin: 0 }}>{formError}</p>
+              )}
             </div>
-            <div className="flex gap-2 mt-5">
-              <button onClick={() => { setShowForm(false); resetForm(); }}
-                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded text-sm hover:bg-gray-50">
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button onClick={() => { setShowForm(false); resetForm(); }} style={BTN_SEC}>
                 {tc("cancel")}
               </button>
-              <button onClick={handlePublish}
+              <button
+                onClick={handlePublish}
                 disabled={formLoading || isPublishDisabled()}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded text-sm disabled:opacity-60">
+                style={{ ...BTN_PRI, opacity: formLoading || isPublishDisabled() ? 0.6 : 1 }}
+              >
                 {formLoading ? "…" : t("publish")}
               </button>
             </div>
@@ -336,18 +509,24 @@ export default function CommunicationClient({
         </div>
       )}
 
-      {/* Modal suppression */}
+      {/* Modal — suppression */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-6">
-            <h2 className="text-base font-semibold mb-4">{t("deleteConfirm")}</h2>
-            <div className="flex gap-2">
-              <button onClick={() => setDeleteId(null)}
-                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded text-sm hover:bg-gray-50">
-                {tc("cancel")}
-              </button>
-              <button onClick={() => handleDelete(deleteId)} disabled={deleteLoading}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm disabled:opacity-60">
+        <div style={OVERLAY}>
+          <div style={{ ...MODAL, maxWidth: "380px" }}>
+            <h2 style={{ fontSize: "15px", fontWeight: 500, margin: "0 0 6px" }}>{t("deleteConfirm")}</h2>
+            <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 20px" }}>
+              Cette action est irréversible.
+            </p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => setDeleteId(null)} style={BTN_SEC}>{tc("cancel")}</button>
+              <button
+                onClick={() => handleDelete(deleteId)}
+                disabled={deleteLoading}
+                style={{
+                  ...BTN_PRI, background: "#991B1B",
+                  opacity: deleteLoading ? 0.6 : 1,
+                }}
+              >
                 {deleteLoading ? "…" : tc("delete")}
               </button>
             </div>

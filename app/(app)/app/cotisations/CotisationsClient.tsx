@@ -383,7 +383,9 @@ export default function CotisationsClient({
       {loadingSummary ? (
         <p style={{ fontSize: "13px", color: "var(--color-text-tertiary)" }}>Chargement…</p>
       ) : summary ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", alignItems: "start" }}>
+          {/* ── Colonne gauche: carte + historique ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {/* Carte de membre */}
           <div
             style={{
@@ -432,7 +434,43 @@ export default function CotisationsClient({
             )}
           </div>
 
-          {/* Grille mensuelle */}
+          {/* Payment history */}
+          {summary.payments.length > 0 && (
+            <div
+              style={{
+                border: "0.5px solid var(--color-border-tertiary)",
+                borderRadius: "var(--border-radius-md)",
+                padding: "16px 18px",
+              }}
+            >
+              <div style={{ fontSize: "12px", fontWeight: 500, marginBottom: "10px", color: "var(--color-text-primary)" }}>
+                Historique des paiements
+              </div>
+              {summary.payments.slice(0, 12).map((p) => (
+                <div
+                  key={p.id}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "7px 0", borderBottom: "0.5px solid var(--color-border-tertiary)",
+                    fontSize: "12px",
+                  }}
+                >
+                  <span style={{ color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                    {p.month}/{p.year}
+                  </span>
+                  <span style={{ color: "var(--color-text-secondary)" }}>{modeLabel(p.paymentMode, t)}</span>
+                  <span style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                    {p.amountPaid.toLocaleString("fr-FR")} {t("fcfa")}
+                  </span>
+                  {statusBadge(p.status, t)}
+                </div>
+              ))}
+            </div>
+          )}
+          </div>{/* end left column */}
+
+          {/* ── Colonne droite: grille mensuelle ── */}
+          <div>
           <div
             style={{
               border: "0.5px solid var(--color-border-tertiary)",
@@ -456,7 +494,7 @@ export default function CotisationsClient({
             </div>
 
             {/* 12-month grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", marginBottom: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px" }}>
               {Array.from({ length: 12 }, (_, i) => {
                 const month = i + 1;
                 const year = new Date().getFullYear();
@@ -497,31 +535,7 @@ export default function CotisationsClient({
                 );
               })}
             </div>
-
-            {/* Payment history */}
-            {summary.payments.length > 0 && (
-              <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: "12px" }}>
-                {summary.payments.slice(0, 12).map((p) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "7px 0", borderBottom: "0.5px solid var(--color-border-tertiary)",
-                      fontSize: "12px",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-                      {p.month}/{p.year}
-                    </span>
-                    <span style={{ color: "var(--color-text-secondary)" }}>{modeLabel(p.paymentMode, t)}</span>
-                    <span style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                      {p.amountPaid.toLocaleString("fr-FR")} {t("fcfa")}
-                    </span>
-                    {statusBadge(p.status, t)}
-                  </div>
-                ))}
-              </div>
-            )}
+          </div>
           </div>
         </div>
       ) : null}

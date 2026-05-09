@@ -210,243 +210,113 @@ export default function ProfilClient() {
     : null;
   const confirmedPayments = monthlyPayments.filter((p) => p.status === "CONFIRMED").length;
 
+  const presentCount = attendance.filter((a) => a.attended === true).length;
+
   return (
-    <div style={{ padding: "22px 24px", maxWidth: "720px" }}>
-      {/* Dark header banner */}
+    <div style={{ padding: "22px 24px" }}>
+      {/* ── Header banner pleine largeur ── */}
       <div
         style={{
           background: "#14171c",
           borderRadius: "var(--border-radius-lg)",
-          padding: "22px 24px",
+          padding: "20px 24px",
           display: "flex",
           alignItems: "center",
           gap: "18px",
-          marginBottom: "18px",
+          marginBottom: "16px",
         }}
       >
         <div
           style={{
-            width: "56px", height: "56px", borderRadius: "50%",
+            width: "52px", height: "52px", borderRadius: "50%",
             background: "#1D9E75", color: "white",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "18px", fontWeight: 500, flexShrink: 0,
+            fontSize: "17px", fontWeight: 500, flexShrink: 0,
           }}
         >
           {initials}
         </div>
-        <div>
-          <div style={{ color: "white", fontSize: "17px", fontWeight: 500, lineHeight: 1.2 }}>{user.name}</div>
-          <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "12px", marginTop: "3px" }}>{user.email}</div>
-          <div style={{ display: "flex", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ color: "white", fontSize: "16px", fontWeight: 500, lineHeight: 1.2 }}>{user.name}</div>
+          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "11.5px", marginTop: "2px" }}>{user.email}</div>
+          <div style={{ display: "flex", gap: "6px", marginTop: "7px", flexWrap: "wrap" }}>
             {user.activeMandate && (
-              <span style={{
-                fontSize: "10px", padding: "3px 10px", borderRadius: "999px",
-                background: "rgba(29,158,117,0.2)", color: "#5DCAA5", fontWeight: 500,
-              }}>
+              <span style={{ fontSize: "10px", padding: "2px 9px", borderRadius: "999px", background: "rgba(29,158,117,0.2)", color: "#5DCAA5", fontWeight: 500 }}>
                 {user.activeMandate.post.name}
               </span>
             )}
             {user.category && (
-              <span style={{
-                fontSize: "10px", padding: "3px 10px", borderRadius: "999px",
-                background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.62)",
-              }}>
+              <span style={{ fontSize: "10px", padding: "2px 9px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.58)" }}>
                 {user.category.name}
               </span>
             )}
           </div>
         </div>
-
-        {/* KPI mini */}
-        <div style={{ marginLeft: "auto", display: "flex", gap: "20px", textAlign: "right" }}>
-          <div>
-            <div style={{ color: "white", fontSize: "20px", fontWeight: 500 }}>{confirmedPayments}</div>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "10px", marginTop: "1px" }}>
-              cotisation{confirmedPayments > 1 ? "s" : ""} payée{confirmedPayments > 1 ? "s" : ""}
+        {/* KPIs */}
+        <div style={{ display: "flex", gap: "32px", textAlign: "right", flexShrink: 0 }}>
+          {[
+            { val: confirmedPayments, label: `cotisation${confirmedPayments !== 1 ? "s" : ""} payée${confirmedPayments !== 1 ? "s" : ""}` },
+            { val: presentCount, label: `présence${presentCount !== 1 ? "s" : ""}` },
+            { val: attendance.length, label: "réunion(s) convoquée(s)" },
+          ].map(({ val, label }) => (
+            <div key={label}>
+              <div style={{ color: "white", fontSize: "22px", fontWeight: 500, lineHeight: 1 }}>{val}</div>
+              <div style={{ color: "rgba(255,255,255,0.42)", fontSize: "10px", marginTop: "3px" }}>{label}</div>
             </div>
-          </div>
-          <div>
-            <div style={{ color: "white", fontSize: "20px", fontWeight: 500 }}>
-              {attendance.filter((a) => a.attended === true).length}
-            </div>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "10px", marginTop: "1px" }}>
-              présence{attendance.filter((a) => a.attended === true).length > 1 ? "s" : ""}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {/* Section identité */}
-        <div style={SECTION}>
-          <div style={SECTION_TITLE}>{t("identity")}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-            {[
-              { label: t("name"), value: user.name },
-              { label: t("email"), value: user.email },
-              { label: t("category"), value: user.category?.name ?? "—" },
-              {
-                label: t("post"),
-                value: user.activeMandate ? user.activeMandate.post.name : t("noPost"),
-                sub: mandateEndDate ? `${t("mandateUntil")} ${mandateEndDate}` : undefined,
-              },
-              {
-                label: t("memberSince"),
-                value: new Date(user.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),
-              },
-            ].map(({ label, value, sub }, i) => (
-              <div key={i}>
-                <div style={LABEL_SM}>{label}</div>
-                <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--color-text-primary)" }}>{value}</div>
-                {sub && <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", marginTop: "1px" }}>{sub}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* ── 2-column grid ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: "12px", alignItems: "start" }}>
 
-        {/* Section cotisation */}
-        <div style={SECTION}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-            <div style={SECTION_TITLE as React.CSSProperties & { marginBottom: 0 }}>{t("cotisation")}</div>
-            <span style={{ fontSize: "11px", color: "var(--color-text-tertiary)" }}>
-              {t("academicYear")} : <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{academicYear}</span>
-            </span>
-          </div>
+        {/* ── Colonne gauche : identité + paramètres ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
 
-          {/* Carte de membre */}
-          <div
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 14px", borderRadius: "var(--border-radius-md)",
-              background: "var(--color-background-secondary)", marginBottom: "16px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <i className="ti ti-id-badge" style={{ fontSize: "15px", color: "var(--color-text-secondary)" }} />
-              <span style={{ fontSize: "13px", fontWeight: 500 }}>{t("card")}</span>
+          {/* Identité */}
+          <div style={SECTION}>
+            <div style={SECTION_TITLE}>{t("identity")}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              {[
+                { label: t("name"), value: user.name },
+                { label: t("email"), value: user.email },
+                { label: t("category"), value: user.category?.name ?? "—" },
+                {
+                  label: t("post"),
+                  value: user.activeMandate ? user.activeMandate.post.name : t("noPost"),
+                  sub: mandateEndDate ? `${t("mandateUntil")} ${mandateEndDate}` : undefined,
+                },
+                {
+                  label: t("memberSince"),
+                  value: new Date(user.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),
+                },
+              ].map(({ label, value, sub }, i) => (
+                <div key={i}>
+                  <div style={LABEL_SM}>{label}</div>
+                  <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--color-text-primary)" }}>{value}</div>
+                  {sub && <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", marginTop: "1px" }}>{sub}</div>}
+                </div>
+              ))}
             </div>
-            {card
-              ? paymentStatusBadge(card.status, t)
-              : <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "4px", background: "var(--color-border-tertiary)", color: "var(--color-text-tertiary)" }}>{t("cardNotTaken")}</span>
-            }
           </div>
 
-          {/* Mensualités */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-            <div style={LABEL_SM}>{t("monthlyPayments")}</div>
-            <Link
-              href="/app/cotisations"
+          {/* Paramètres */}
+          <div style={SECTION}>
+            <div style={SECTION_TITLE}>{t("settings")}</div>
+            <div
               style={{
-                fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)",
-                background: "#14171c", color: "white", textDecoration: "none",
-                display: "flex", alignItems: "center", gap: "5px",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                paddingBottom: "14px", marginBottom: "14px",
+                borderBottom: "0.5px solid var(--color-border-tertiary)",
               }}
             >
-              <i className="ti ti-plus" style={{ fontSize: "11px" }} />
-              Déclarer un paiement
-            </Link>
-          </div>
-          {monthlyPayments.length === 0 ? (
-            <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", margin: 0 }}>{t("noPayments")}</p>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12.5px", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    {[t("month"), t("amount"), t("status")].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          textAlign: "left", padding: "0 0 8px",
-                          fontSize: "10px", color: "var(--color-text-tertiary)",
-                          fontWeight: 500, letterSpacing: "0.5px",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthlyPayments.map((p) => (
-                    <tr key={p.id} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-                      <td style={{ padding: "8px 0", color: "var(--color-text-primary)" }}>
-                        {MONTH_NAMES[p.month - 1]} {p.year}
-                      </td>
-                      <td style={{ padding: "8px 0", color: "var(--color-text-secondary)" }}>
-                        {p.amountPaid.toLocaleString()} {t("fcfa")}
-                      </td>
-                      <td style={{ padding: "8px 0" }}>{paymentStatusBadge(p.status, t)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <span style={{ fontSize: "13px", color: "var(--color-text-primary)" }}>{t("language")}</span>
+              <LocaleSwitcher />
             </div>
-          )}
-        </div>
-
-        {/* Section présence */}
-        <div style={SECTION}>
-          <div style={SECTION_TITLE}>{t("attendance")}</div>
-          {attendance.length === 0 ? (
-            <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", margin: 0 }}>{t("noAttendance")}</p>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12.5px", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    {[t("meeting"), t("date"), t("attendanceStatus")].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          textAlign: "left", padding: "0 0 8px",
-                          fontSize: "10px", color: "var(--color-text-tertiary)",
-                          fontWeight: 500, letterSpacing: "0.5px",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendance.map((entry, i) => (
-                    <tr key={i} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-                      <td style={{ padding: "8px 0", color: "var(--color-text-primary)" }}>{entry.meeting.title}</td>
-                      <td style={{ padding: "8px 0", color: "var(--color-text-secondary)" }}>
-                        {new Date(entry.meeting.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
-                      </td>
-                      <td style={{ padding: "8px 0" }}>{attendanceBadge(entry, t)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Section paramètres */}
-        <div style={SECTION}>
-          <div style={SECTION_TITLE}>{t("settings")}</div>
-
-          {/* Langue */}
-          <div
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              paddingBottom: "16px", marginBottom: "16px",
-              borderBottom: "0.5px solid var(--color-border-tertiary)",
-            }}
-          >
-            <span style={{ fontSize: "13px", color: "var(--color-text-primary)" }}>{t("language")}</span>
-            <LocaleSwitcher />
-          </div>
-
-          {/* Changement de mot de passe */}
-          <div>
             <div style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)", marginBottom: "12px" }}>
               {t("changePassword")}
             </div>
-            <form onSubmit={handlePasswordChange} style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "340px" }}>
+            <form onSubmit={handlePasswordChange} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {[
                 { label: t("currentPassword"), value: currentPwd, setter: setCurrentPwd, autoComplete: "current-password" },
                 { label: t("newPassword"), value: newPwd, setter: setNewPwd, autoComplete: "new-password", hint: t("passwordMinLength") },
@@ -454,37 +324,108 @@ export default function ProfilClient() {
               ].map(({ label, value, setter, autoComplete, hint }) => (
                 <div key={label}>
                   <label style={LABEL_SM}>{label}</label>
-                  <input
-                    type="password"
-                    value={value}
-                    onChange={(e) => setter(e.target.value)}
-                    style={INPUT}
-                    autoComplete={autoComplete}
-                  />
+                  <input type="password" value={value} onChange={(e) => setter(e.target.value)} style={INPUT} autoComplete={autoComplete} />
                   {hint && <p style={{ fontSize: "11px", color: "var(--color-text-tertiary)", margin: "3px 0 0" }}>{hint}</p>}
                 </div>
               ))}
-
-              {pwdError && (
-                <p style={{ fontSize: "12px", color: "#991B1B", margin: 0 }}>{pwdError}</p>
-              )}
-              {pwdSuccess && (
-                <p style={{ fontSize: "12px", color: "#085041", margin: 0 }}>{pwdSuccess}</p>
-              )}
-
+              {pwdError && <p style={{ fontSize: "12px", color: "#991B1B", margin: 0 }}>{pwdError}</p>}
+              {pwdSuccess && <p style={{ fontSize: "12px", color: "#085041", margin: 0 }}>{pwdSuccess}</p>}
               <button
                 type="submit"
                 disabled={pwdLoading}
-                style={{
-                  background: "#14171c", color: "white", border: "none",
-                  borderRadius: "var(--border-radius-md)", padding: "9px 18px",
-                  fontSize: "13px", cursor: "pointer", alignSelf: "flex-start",
-                  opacity: pwdLoading ? 0.6 : 1,
-                }}
+                style={{ background: "#14171c", color: "white", border: "none", borderRadius: "var(--border-radius-md)", padding: "9px 18px", fontSize: "13px", cursor: "pointer", alignSelf: "flex-start", opacity: pwdLoading ? 0.6 : 1 }}
               >
                 {pwdLoading ? "…" : t("savePassword")}
               </button>
             </form>
+          </div>
+        </div>
+
+        {/* ── Colonne droite : cotisation + présence ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+          {/* Cotisation */}
+          <div style={SECTION}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+              <div style={{ ...SECTION_TITLE, marginBottom: 0 }}>{t("cotisation")}</div>
+              <span style={{ fontSize: "11px", color: "var(--color-text-tertiary)" }}>
+                {t("academicYear")} : <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{academicYear}</span>
+              </span>
+            </div>
+            {/* Carte de membre */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--border-radius-md)", background: "var(--color-background-secondary)", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="ti ti-id-badge" style={{ fontSize: "15px", color: "var(--color-text-secondary)" }} />
+                <span style={{ fontSize: "13px", fontWeight: 500 }}>{t("card")}</span>
+              </div>
+              {card
+                ? paymentStatusBadge(card.status, t)
+                : <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "4px", background: "var(--color-border-tertiary)", color: "var(--color-text-tertiary)" }}>{t("cardNotTaken")}</span>
+              }
+            </div>
+            {/* Mensualités */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+              <div style={LABEL_SM}>{t("monthlyPayments")}</div>
+              <Link href="/app/cotisations" style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)", background: "#14171c", color: "white", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
+                <i className="ti ti-plus" style={{ fontSize: "11px" }} />
+                Déclarer un paiement
+              </Link>
+            </div>
+            {monthlyPayments.length === 0 ? (
+              <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", margin: 0 }}>{t("noPayments")}</p>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", fontSize: "12.5px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      {[t("month"), t("amount"), t("status")].map((h) => (
+                        <th key={h} style={{ textAlign: "left", padding: "0 0 8px", fontSize: "10px", color: "var(--color-text-tertiary)", fontWeight: 500, letterSpacing: "0.5px" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyPayments.map((p) => (
+                      <tr key={p.id} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                        <td style={{ padding: "8px 0", color: "var(--color-text-primary)" }}>{MONTH_NAMES[p.month - 1]} {p.year}</td>
+                        <td style={{ padding: "8px 0", color: "var(--color-text-secondary)" }}>{p.amountPaid.toLocaleString()} {t("fcfa")}</td>
+                        <td style={{ padding: "8px 0" }}>{paymentStatusBadge(p.status, t)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Présence */}
+          <div style={SECTION}>
+            <div style={SECTION_TITLE}>{t("attendance")}</div>
+            {attendance.length === 0 ? (
+              <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", margin: 0 }}>{t("noAttendance")}</p>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", fontSize: "12.5px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      {[t("meeting"), t("date"), t("attendanceStatus")].map((h) => (
+                        <th key={h} style={{ textAlign: "left", padding: "0 0 8px", fontSize: "10px", color: "var(--color-text-tertiary)", fontWeight: 500, letterSpacing: "0.5px" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attendance.map((entry, i) => (
+                      <tr key={i} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                        <td style={{ padding: "8px 0", color: "var(--color-text-primary)" }}>{entry.meeting.title}</td>
+                        <td style={{ padding: "8px 0", color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
+                          {new Date(entry.meeting.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                        </td>
+                        <td style={{ padding: "8px 0" }}>{attendanceBadge(entry, t)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

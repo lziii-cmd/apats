@@ -18,7 +18,6 @@ interface SidebarNavProps {
   userRole: string;
   userInitials: string;
   navItems: NavItem[];
-  isAdmin?: boolean;
 }
 
 function getCurrentLocale(): Locale {
@@ -30,7 +29,7 @@ function getCurrentLocale(): Locale {
   return LOCALES.includes(val as Locale) ? (val as Locale) : "fr";
 }
 
-export default function SidebarNav({ userName, userRole, userInitials, navItems, isAdmin }: SidebarNavProps) {
+export default function SidebarNav({ userName, userRole, userInitials, navItems }: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -154,43 +153,6 @@ export default function SidebarNav({ userName, userRole, userInitials, navItems,
             </Link>
           );
         })}
-
-      {/* Section Administration — admin uniquement */}
-      {isAdmin && (
-        <>
-          <div
-            style={{
-              color: "rgba(255,255,255,0.32)",
-              fontSize: "10px",
-              letterSpacing: "0.8px",
-              padding: "14px 8px 4px",
-              textTransform: "uppercase",
-            }}
-          >
-            Système
-          </div>
-          <Link
-            href="/admin"
-            className={pathname.startsWith("/admin") ? undefined : "sidebar-link"}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "8px 10px",
-              borderRadius: "6px",
-              background: pathname.startsWith("/admin") ? "rgba(29,158,117,0.16)" : "transparent",
-              color: pathname.startsWith("/admin") ? "#5DCAA5" : "rgba(255,255,255,0.62)",
-              fontSize: "12.5px",
-              textDecoration: "none",
-              fontWeight: pathname.startsWith("/admin") ? 500 : 400,
-              transition: "background 0.15s, color 0.15s",
-            }}
-          >
-            <i className="ti ti-settings" style={{ fontSize: "16px", flexShrink: 0 }} />
-            <span style={{ flex: 1, minWidth: 0 }}>Administration</span>
-          </Link>
-        </>
-      )}
 
       {/* Bottom: user card + locale switcher */}
       <div

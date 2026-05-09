@@ -19,7 +19,15 @@
       "Bash(npx next *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('profil',{}\\), indent=2, ensure_ascii=False\\)\\)\")",
+      "Bash(git commit *)",
+      "WebFetch(domain:claude.ai)",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "PowerShell(cd \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\\\\.claude\\\\worktrees\\\\funny-gates-72fcbc\"; $env:NODE_TLS_REJECT_UNAUTHORIZED=\"0\"; npx prisma generate; $env:NODE_TLS_REJECT_UNAUTHORIZED=\"\")",
+      "Bash(npx tsc *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(cd \"D:\\\\PROJETS\\\\ENSMG\\\\APATS\" && npx prisma generate --schema=\".claude/worktrees/funny-gates-72fcbc/prisma/schema.prisma\" 2>&1 | tail -5)"
     ]
   }
 }

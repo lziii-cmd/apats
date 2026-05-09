@@ -18,8 +18,8 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // /admin réservé aux ADMIN
-  if (pathname.startsWith("/admin") && session.role !== "ADMIN") {
+  // /app/admin réservé aux ADMIN
+  if (pathname.startsWith("/app/admin") && session.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/app", req.url));
   }
 

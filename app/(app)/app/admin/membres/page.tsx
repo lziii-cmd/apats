@@ -1,7 +1,12 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import MembresClient from "./MembresClient";
 
-export default async function MembresPage() {
+export default async function AdminMembresPage() {
+  const session = await getSession();
+  if (!session || session.role !== "ADMIN") redirect("/app");
+
   const [membres, categories, posts] = await Promise.all([
     db.user.findMany({
       where: { role: "MEMBER" },

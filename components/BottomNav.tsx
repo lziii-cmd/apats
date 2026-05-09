@@ -21,7 +21,7 @@ const MORE_ITEMS_ADMIN: NavEntry[] = [
   { href: "/app/tresorerie", icon: "ti-wallet",      label: "Trésorerie" },
   { href: "/app/communication", icon: "ti-bell",     label: "Annonces" },
   { href: "/app/profil",    icon: "ti-user-circle",  label: "Mon Profil" },
-  { href: "/admin",         icon: "ti-settings",     label: "Administration" },
+  { href: "/app/admin",     icon: "ti-settings",     label: "Administration" },
 ];
 
 const MORE_ITEMS_MEMBER: NavEntry[] = [
@@ -74,7 +74,7 @@ export default function BottomNav({ isAdmin, canSeeMembers, canSeeTreasury }: Bo
   const moreItems: NavEntry[] = isBureau
     ? MORE_ITEMS_ADMIN.filter((i) => {
         if (i.href === "/app/tresorerie") return canSeeTreasury;
-        if (i.href === "/admin") return isAdmin;
+        if (i.href === "/app/admin") return isAdmin;
         return true;
       })
     : MORE_ITEMS_MEMBER;

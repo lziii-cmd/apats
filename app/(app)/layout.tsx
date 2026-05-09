@@ -32,20 +32,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const userInitials = getInitials(userName);
   const userRole = session.role === "ADMIN" ? "Administrateur" : "Membre";
 
-  const navItems = [
-    { href: "/app", icon: "ti-layout-dashboard", label: t("dashboard"), show: true },
-    { href: "/app/membres", icon: "ti-users", label: t("membres"), show: canSee("MEMBERS_VIEW") },
-    { href: "/app/cotisations", icon: "ti-credit-card", label: t("cotisations"), show: true },
-    { href: "/app/reunions", icon: "ti-calendar-event", label: t("reunions"), show: true },
-    { href: "/app/evenements", icon: "ti-confetti", label: t("evenements"), show: true },
-    { href: "/app/tresorerie", icon: "ti-wallet", label: t("tresorerie"), show: canSee("TREASURY_VIEW") },
-    { href: "/app/communication", icon: "ti-bell", label: t("communication"), show: true },
-    { href: "/app/profil", icon: "ti-user-circle", label: t("profil"), show: true },
-  ];
-
   const isAdmin = session.role === "ADMIN";
   const canSeeMembers = canSee("MEMBERS_VIEW");
   const canSeeTreasury = canSee("TREASURY_VIEW");
+
+  const navItems = [
+    { href: "/app", icon: "ti-layout-dashboard", label: t("dashboard"), show: true },
+    { href: "/app/membres", icon: "ti-users", label: t("membres"), show: canSeeMembers },
+    { href: "/app/cotisations", icon: "ti-credit-card", label: t("cotisations"), show: true },
+    { href: "/app/reunions", icon: "ti-calendar-event", label: t("reunions"), show: true },
+    { href: "/app/evenements", icon: "ti-confetti", label: t("evenements"), show: true },
+    { href: "/app/tresorerie", icon: "ti-wallet", label: t("tresorerie"), show: canSeeTreasury },
+    { href: "/app/communication", icon: "ti-bell", label: t("communication"), show: true },
+    { href: "/app/profil", icon: "ti-user-circle", label: t("profil"), show: true },
+    { href: "/app/admin", icon: "ti-settings", label: "Administration", show: isAdmin },
+  ];
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -56,7 +57,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userRole={userRole}
           userInitials={userInitials}
           navItems={navItems}
-          isAdmin={isAdmin}
         />
       </div>
 

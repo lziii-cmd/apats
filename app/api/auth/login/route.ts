@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   const token = await signToken({ userId: user.id, email: user.email, role: user.role });
 
-  const redirect = user.role === "ADMIN" ? "/admin" : "/app";
+  const redirect = "/app";
 
   const response = NextResponse.json({ redirect });
   response.cookies.set(COOKIE_NAME, token, {

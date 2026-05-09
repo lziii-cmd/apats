@@ -90,7 +90,6 @@ enum Feature {
   MEETINGS_ATTENDANCE
   MEETINGS_UPLOAD_PV
   // Événements
-  EVENTS_VIEW
   EVENTS_CREATE
   // Trésorerie
   TREASURY_VIEW
@@ -107,7 +106,7 @@ enum Feature {
 model MemberCategory {
   id            String         @id @default(cuid())
   name          String         @unique // ex: "CDI", "CDD", "Vacation"
-  monthlyFee    Int                     // montant mensuel en FCFA
+  monthlyFee    Int // montant mensuel en FCFA
   users         User[]
   announcements Announcement[]
   createdAt     DateTime       @default(now())
@@ -115,30 +114,30 @@ model MemberCategory {
 }
 
 model User {
-  id                   String            @id @default(cuid())
-  email                String            @unique
-  name                 String
-  passwordHash         String
-  role                 Role              @default(MEMBER)
-  locale               Locale            @default(fr)
-  categoryId           String?
-  category             MemberCategory?   @relation(fields: [categoryId], references: [id])
-  mandates             Mandate[]
-  notifications        Notification[]
-  memberCards          MemberCard[]
-  monthlyPayments      MonthlyPayment[]
-  meetingsCreated      Meeting[]
-  meetingAttendances   MeetingAttendee[]
-  eventsCreated        Event[]
-  eventParticipations  EventParticipant[]
-  transactions              Transaction[]
-  announcements             Announcement[]
-  announcementRecipients    AnnouncementRecipient[]
-  passwordResetToken   String?           @unique
-  passwordResetExpiry  DateTime?
-  isActive             Boolean           @default(true)
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  name                   String
+  passwordHash           String
+  role                   Role                    @default(MEMBER)
+  locale                 Locale                  @default(fr)
+  categoryId             String?
+  category               MemberCategory?         @relation(fields: [categoryId], references: [id])
+  mandates               Mandate[]
+  notifications          Notification[]
+  memberCards            MemberCard[]
+  monthlyPayments        MonthlyPayment[]
+  meetingsCreated        Meeting[]
+  meetingAttendances     MeetingAttendee[]
+  eventsCreated          Event[]
+  eventParticipations    EventParticipant[]
+  transactions           Transaction[]
+  announcements          Announcement[]
+  announcementRecipients AnnouncementRecipient[]
+  passwordResetToken     String?                 @unique
+  passwordResetExpiry    DateTime?
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
 }
 
 model Post {
@@ -180,7 +179,7 @@ model Notification {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // "mandate_expiry" | "cotisation_due" | "meeting_invite" | "announcement"
+  type      String // "mandate_expiry" | "cotisation_due" | "meeting_invite" | "announcement"
   title     String
   body      String
   isRead    Boolean  @default(false)
@@ -190,14 +189,14 @@ model Notification {
 }
 
 model AppConfig {
-  id                   String   @id @default("singleton")
-  orgName              String   @default("Amicale des PATs — ENSMG")
-  logoUrl              String?
-  defaultLocale        Locale   @default(fr)
-  academicYear         String   @default("2025-2026")
-  mandateDurationDays  Int      @default(730) // 2 ans par défaut (CDC §5.2.3)
-  cardPriceFcfa        Int      @default(5000) // prix de la carte annuelle (CDC §5.4.1)
-  updatedAt            DateTime @updatedAt
+  id                  String   @id @default("singleton")
+  orgName             String   @default("Amicale des PATs — ENSMG")
+  logoUrl             String?
+  defaultLocale       Locale   @default(fr)
+  academicYear        String   @default("2025-2026")
+  mandateDurationDays Int      @default(730) // 2 ans par défaut (CDC §5.2.3)
+  cardPriceFcfa       Int      @default(5000) // prix de la carte annuelle (CDC §5.4.1)
+  updatedAt           DateTime @updatedAt
 }
 
 model MemberCard {
@@ -355,17 +354,17 @@ model TxCategory {
 }
 
 model Transaction {
-  id          String      @id @default(cuid())
+  id          String          @id @default(cuid())
   date        DateTime
   type        TransactionType
   categoryId  String
-  category    TxCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category    TxCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   description String
-  amount      Int         // en FCFA
+  amount      Int // en FCFA
   createdById String
-  createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Restrict)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdBy   User            @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   @@index([date])
   @@index([type])

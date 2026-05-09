@@ -16,7 +16,6 @@ const FEATURE_LABELS: Record<Feature, string> = {
   MEETINGS_CREATE:      "Réunions — Créer",
   MEETINGS_ATTENDANCE:  "Réunions — Émargement",
   MEETINGS_UPLOAD_PV:   "Réunions — Upload PV",
-  EVENTS_VIEW:          "Événements — Voir",
   EVENTS_CREATE:        "Événements — Créer",
   TREASURY_VIEW:        "Trésorerie — Voir",
   TREASURY_MANAGE:      "Trésorerie — Gérer",

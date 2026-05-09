@@ -154,6 +154,18 @@ describe("GET /api/reunions", () => {
     const data = await res.json();
     expect(data).toHaveLength(1);
   });
+
+  it("membre simple sans permission voit uniquement ses réunions (filtre attendees)", async () => {
+    vi.mocked(getSession).mockResolvedValue(mockSession as never);
+    vi.mocked(hasPermission).mockResolvedValue(false);
+    vi.mocked(db.meeting.findMany).mockResolvedValue([mockMeeting] as never);
+
+    const res = await listReunions(new Request("http://localhost/api/reunions") as never);
+    expect(res.status).toBe(200);
+
+    const call = vi.mocked(db.meeting.findMany).mock.calls[0][0] as { where?: unknown };
+    expect(call.where).toEqual({ attendees: { some: { userId: "u1" } } });
+  });
 });
 
 // ---------------------------------------------------------------------------

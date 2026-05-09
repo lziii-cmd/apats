@@ -14,7 +14,6 @@ describe("Feature enum", () => {
       "MEETINGS_CREATE",
       "MEETINGS_ATTENDANCE",
       "MEETINGS_UPLOAD_PV",
-      "EVENTS_VIEW",
       "EVENTS_CREATE",
       "TREASURY_VIEW",
       "TREASURY_MANAGE",

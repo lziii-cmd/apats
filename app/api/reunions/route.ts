@@ -5,16 +5,18 @@ import { hasPermission } from "@/lib/permissions";
 import { Feature, MeetingType } from "@prisma/client";
 
 // GET /api/reunions — liste des réunions
+// Bureau/admin : toutes les réunions. Membre simple : uniquement celles où il est convoqué.
 export async function GET(_req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
-  const canView =
+  const canViewAll =
     session.role === "ADMIN" ||
-    (await hasPermission(session.userId, "MEETINGS_VIEW" as Feature));
-  if (!canView) return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+    (await hasPermission(session.userId, "MEETINGS_VIEW" as Feature)) ||
+    (await hasPermission(session.userId, "MEETINGS_CREATE" as Feature));
 
   const meetings = await db.meeting.findMany({
+    where: canViewAll ? undefined : { attendees: { some: { userId: session.userId } } },
     orderBy: { date: "desc" },
     select: {
       id: true,

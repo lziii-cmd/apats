@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface BottomNavProps {
   isAdmin: boolean;
@@ -30,8 +30,14 @@ const MORE_ITEMS_MEMBER: NavEntry[] = [
 
 export default function BottomNav({ isAdmin, canSeeMembers, canSeeTreasury }: BottomNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [showMore, setShowMore] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  }, [router]);
 
   /* Close sheet on outside tap */
   useEffect(() => {
@@ -130,7 +136,7 @@ export default function BottomNav({ isAdmin, canSeeMembers, canSeeTreasury }: Bo
               style={{
                 display: "flex", alignItems: "center", gap: "14px",
                 padding: "13px 16px",
-                borderBottom: idx < moreItems.length - 1 ? "0.5px solid var(--color-border-tertiary)" : "none",
+                borderBottom: "0.5px solid var(--color-border-tertiary)",
                 textDecoration: "none",
                 background: isActive(item.href) ? "rgba(29,158,117,0.05)" : "transparent",
               }}
@@ -148,6 +154,28 @@ export default function BottomNav({ isAdmin, canSeeMembers, canSeeTreasury }: Bo
               <i className="ti ti-chevron-right" style={{ fontSize: "16px", color: "var(--color-text-tertiary)" }} />
             </Link>
           ))}
+
+          {/* Déconnexion */}
+          <button
+            onClick={handleLogout}
+            style={{
+              display: "flex", alignItems: "center", gap: "14px",
+              padding: "13px 16px", width: "100%",
+              background: "transparent", border: "none", cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            <div style={{
+              width: "36px", height: "36px", borderRadius: "8px",
+              background: "rgba(220,60,60,0.08)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <i className="ti ti-logout" style={{ fontSize: "18px", color: "#DC3C3C" }} />
+            </div>
+            <span style={{ flex: 1, fontSize: "13px", fontWeight: 500, color: "#DC3C3C" }}>
+              Se déconnecter
+            </span>
+          </button>
         </div>
       )}
 

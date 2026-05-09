@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, useCallback } from "react";
 import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/config";
 
 interface NavItem {
@@ -35,6 +35,11 @@ export default function SidebarNav({ userName, userRole, userInitials, navItems 
   const [isPending, startTransition] = useTransition();
 
   const currentLocale = getCurrentLocale();
+
+  const handleLogout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  }, [router]);
 
   async function handleLocale(locale: Locale) {
     await fetch("/api/me/locale", {
@@ -205,8 +210,8 @@ export default function SidebarNav({ userName, userRole, userInitials, navItems 
           </div>
         </div>
 
-        {/* Locale switcher */}
-        <div style={{ display: "flex", gap: "4px", padding: "4px 8px" }}>
+        {/* Locale switcher + logout */}
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px" }}>
           {LOCALES.map((locale) => (
             <button
               key={locale}
@@ -229,6 +234,26 @@ export default function SidebarNav({ userName, userRole, userInitials, navItems 
               {locale.toUpperCase()}
             </button>
           ))}
+          <button
+            onClick={handleLogout}
+            title="Se déconnecter"
+            style={{
+              marginLeft: "auto",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px 6px",
+              borderRadius: "4px",
+              display: "flex",
+              alignItems: "center",
+              color: "rgba(255,255,255,0.38)",
+              transition: "color 0.15s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(220,60,60,0.85)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.38)")}
+          >
+            <i className="ti ti-logout" style={{ fontSize: "15px" }} />
+          </button>
         </div>
       </div>
     </aside>

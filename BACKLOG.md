@@ -304,7 +304,8 @@ F-001 (scaffolding)
 ---
 
 ### F-018 — Mon Profil
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.9
 - **Description** : Affichage des informations personnelles. Poste dans l'amicale et catégorie. Statut de cotisation (carte annuelle + mensualités). Historique de présence aux réunions. Changement de mot de passe. Switch langue FR/EN.
 - **Dépendances** : F-011, F-014
@@ -315,7 +316,8 @@ F-001 (scaffolding)
 ---
 
 ### F-019 — PWA finalisation
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / 6c1d53d
 - **IDs CDC** : §7, §8
 - **Description** : Service worker avec stratégie de cache offline partielle (consultation des réunions et profil hors connexion). Manifest PWA complet. Notifications push in-app. Optimisations performance (< 3s sur connexion standard). Tests responsive complets PC / tablette / iOS / Android.
 - **Dépendances** : F-018

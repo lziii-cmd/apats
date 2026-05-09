@@ -12,11 +12,6 @@ export default async function ReunionDetailPage({ params }: Props) {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const canView =
-    session.role === "ADMIN" ||
-    (await hasPermission(session.userId, "MEETINGS_VIEW" as Feature));
-  if (!canView) redirect("/app");
-
   const canCreate =
     session.role === "ADMIN" ||
     (await hasPermission(session.userId, "MEETINGS_CREATE" as Feature));

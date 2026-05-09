@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APATS — Mobile Preview</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e8e7e3;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 32px;
+    padding: 32px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    flex-wrap: wrap;
+  }
+
+  /* ── Phone frame ── */
+  .phone {
+    width: 375px;
+    height: 780px;
+    border-radius: 40px;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.22), 0 0 0 10px #1a1a18;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .phone-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b6b66;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    height: 44px;
+    background: #14171c;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+  }
+  .status-bar .time { color: white; font-size: 13px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; color: white; font-size: 12px; }
+
+  /* ── Topbar ── */
+  .topbar {
+    height: 48px;
+    background: #ffffff;
+    border-bottom: 0.5px solid #e8e7e3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+  .topbar-title {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 500; color: #1a1a18;
+  }
+  .topbar-title i { font-size: 14px; color: #9b9b96; }
+  .topbar-bell {
+    width: 32px; height: 32px;
+    border: 0.5px solid #e8e7e3;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #6b6b66; font-size: 15px; position: relative; cursor: pointer;
+  }
+  .topbar-bell .dot {
+    position: absolute; top: 5px; right: 5px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #D85A30; border: 1.5px solid white;
+  }
+
+  /* ── Page content ── */
+  .page-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #ffffff;
+  }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    height: 72px;
+    background: #14171c;
+    border-top: 0.5px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s;
+    border-radius: 0;
+    background: none;
+    border: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); }
+  .nav-item.active { background: rgba(255,255,255,0.07); }
+  .nav-item i {
+    font-size: 22px;
+    color: rgba(255,255,255,0.38);
+    transition: color 0.15s;
+  }
+  .nav-item.active i { color: #ffffff; }
+  .nav-item span {
+    font-size: 9.5px;
+    color: rgba(255,255,255,0.35);
+    font-weight: 400;
+    letter-spacing: 0.2px;
+    transition: color 0.15s;
+  }
+  .nav-item.active span { color: rgba(255,255,255,0.85); font-weight: 500; }
+  .nav-item .badge {
+    position: absolute; top: 8px; right: calc(50% - 16px);
+    background: #D85A30;
+    color: white; font-size: 8px; font-weight: 700;
+    padding: 1px 4px; border-radius: 999px;
+    border: 1.5px solid #14171c;
+    line-height: 1.3;
+  }
+  /* Active indicator bar */
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 28px; height: 2px;
+    background: #1D9E75;
+    border-radius: 0 0 2px 2px;
+  }
+
+  /* ── Home safe area ── */
+  .home-indicator {
+    height: 20px;
+    background: #14171c;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .home-indicator div {
+    width: 120px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* ── Page content styles ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .kpi-card {
+    background: #f4f3f0;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .kpi-label { font-size: 9px; color: #9b9b96; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+  .kpi-value { font-size: 20px; font-weight: 500; color: #1a1a18; line-height: 1; }
+  .kpi-sub { font-size: 9.5px; color: #6b6b66; margin-top: 2px; }
+
+  .section-title {
+    font-size: 10px; font-weight: 500; color: #9b9b96;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px; margin-top: 14px;
+  }
+
+  .list-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid #e8e7e3;
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; flex-shrink: 0;
+  }
+  .list-name { font-size: 12.5px; font-weight: 500; color: #1a1a18; }
+  .list-sub { font-size: 10.5px; color: #6b6b66; margin-top: 1px; }
+  .list-badge {
+    margin-left: auto; flex-shrink: 0;
+    font-size: 9.5px; padding: 2px 7px; border-radius: 4px; font-weight: 500;
+  }
+  .badge-ok { background: #E1F5EE; color: #085041; }
+  .badge-late { background: #FCEBEB; color: #791F1F; }
+
+  .meeting-card {
+    border: 0.5px solid #e8e7e3;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .meeting-date {
+    background: #f4f3f0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    text-align: center;
+    min-width: 44px;
+  }
+  .meeting-day { font-size: 20px; font-weight: 500; line-height: 1; }
+  .meeting-month { font-size: 8.5px; color: #6b6b66; letter-spacing: 0.3px; }
+  .meeting-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .meeting-meta { font-size: 10.5px; color: #6b6b66; }
+  .tag { font-size: 9.5px; padding: 2px 7px; border-radius: 4px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px; margin-bottom: 4px; }
+
+  /* ── Annotation labels ── */
+  .wrap { display: flex; flex-direction: column; align-items: center; }
+</style>
+</head>
+<body>
+
+<!-- Phone 1: Dashboard (home page) -->
+<div class="wrap">
+  <div class="phone-label">Tableau de bord</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <i class="ti ti-wifi"></i>
+        <i class="ti ti-signal-4g"></i>
+        <i class="ti ti-battery-3"></i>
+      </div>
+    </div>
+    <div class="topbar">
+      <div class="topbar-title">
+        <i class="ti ti-layout-dashboard"></i>
+        Tableau de bord
+      </div>
+      <div class="topbar-bell">
+        <i class="ti ti-bell"></i>
+        <div class="dot"></div>
+      </div>
+    </div>
+    <div class="page-content">
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Membres</div>
+          <div class="kpi-value">18</div>
+          <div class="kpi-sub">actifs</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Cotisations</div>
+          <div class="kpi-value" style="color:#D85A30">3</div>
+          <div class="kpi-sub">en retard</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Prochaine réunion</div>
+          <div class="kpi-value" style="font-size:15px">15 mai</div>
+          <div class="kpi-sub">Bureau</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Trésorerie</div>
+          <div class="kpi-value" style="font-size:14px">842k</div>
+          <div class="kpi-sub">FCFA</div>
+        </div>
+      </div>
+      <!-- Banner -->
+      <div style="background:#EAF3DE;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-calendar-event" style="color:#27500A;font-size:14px"></i>
+        <div>
+          <div style="font-size:11.5px;font-weight:500;color:#27500A">Réunion aujourd'hui</div>
+          <div style="font-size:10px;color:#27500A;opacity:0.75">Bureau — 14h00, Salle de conf.</div>
+        </div>
+        <i class="ti ti-chevron-right" style="margin-left:auto;color:#27500A;font-size:14px"></i>
+      </div>
+      <!-- Annonce -->
+      <div class="section-title">Dernières annonces</div>
+      <div style="border:0.5px solid #e8e7e3;border-left:3px solid #1D9E75;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+        <div style="font-size:11px;color:#6b6b66;margin-bottom:3px">Présidente · il y a 2h</div>
+        <div style="font-size:12.5px;font-weight:500;margin-bottom:3px">Réunion reportée au 20 mai</div>
+        <div style="font-size:11px;color:#6b6b66">Suite à un empêchement de dernière minute…</div>
+      </div>
+    </div>
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <button class="nav-item active">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Accueil</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-users"></i>
+        <span>Membres</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-credit-card"></i>
+        <span>Cotisations</span>
+        <div class="badge">3</div>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-calendar-event"></i>
+        <span>Réunions</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-dots"></i>
+        <span>Plus</span>
+      </button>
+    </div>
+    <div class="home-indicator"><div></div></div>
+  </div>
+</div>
+
+<!-- Phone 2: Membres -->
+<div class="wrap">
+  <div class="phone-label">Liste des membres</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i>
+      </div>
+    </div>
+    <div class="topbar">
+      <div class="topbar-title">
+        <i class="ti ti-users"></i>
+        Membres
+      </div>
+      <div class="topbar-bell">
+        <i class="ti ti-bell"></i>
+      </div>
+    </div>
+    <div class="page-content">
+      <!-- Search -->
+      <div style="position:relative;margin-bottom:10px;">
+        <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9b9b96;font-size:13px;pointer-events:none;"></i>
+        <input type="text" placeholder="Rechercher un membre…" style="width:100%;padding:8px 10px 8px 30px;font-size:12px;border:0.5px solid #e8e7e3;border-radius:8px;background:#f4f3f0;outline:none;box-sizing:border-box;" />
+      </div>
+      <!-- Pill filters -->
+      <div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;">
+        <button style="font-size:10px;padding:4px 10px;border-radius:999px;border:none;background:#14171c;color:white;font-weight:500;cursor:pointer;">Tous · 18</button>
+        <button style="font-size:10px;padding:4px 10px;border-radius:999px;border:none;background:#f4f3f0;color:#6b6b66;cursor:pointer;">CDI</button>
+        <button style="font-size:10px;padding:4px 10px;border-radius:999px;border:none;background:#f4f3f0;color:#6b6b66;cursor:pointer;">CDD</button>
+        <button style="font-size:10px;padding:4px 10px;border-radius:999px;border:none;background:#f4f3f0;color:#6b6b66;cursor:pointer;">Vacataire</button>
+      </div>
+      <!-- Member list — condensed mobile rows -->
+      <div class="list-item">
+        <div class="avatar" style="background:#EEEDFE;color:#3C3489">AF</div>
+        <div><div class="list-name">Aminata Fall</div><div class="list-sub">Présidente</div></div>
+        <span class="list-badge badge-ok">À jour</span>
+      </div>
+      <div class="list-item">
+        <div class="avatar" style="background:#EAF3DE;color:#27500A">MD</div>
+        <div><div class="list-name">Moussa Diallo</div><div class="list-sub">Trésorier</div></div>
+        <span class="list-badge badge-ok">À jour</span>
+      </div>
+      <div class="list-item">
+        <div class="avatar" style="background:#FAECE7;color:#712B13">FN</div>
+        <div><div class="list-name">Fatou Ndiaye</div><div class="list-sub">Secrétaire</div></div>
+        <span class="list-badge badge-late">En retard</span>
+      </div>
+      <div class="list-item">
+        <div class="avatar" style="background:#E6F1FB;color:#0C447C">IS</div>
+        <div><div class="list-name">Ibrahima Sow</div><div class="list-sub">Sans poste</div></div>
+        <span class="list-badge badge-ok">À jour</span>
+      </div>
+      <div class="list-item">
+        <div class="avatar" style="background:#FBEAF0;color:#72243E">KD</div>
+        <div><div class="list-name">Khadija Diop</div><div class="list-sub">Sans poste</div></div>
+        <span class="list-badge badge-late">En retard</span>
+      </div>
+      <div class="list-item">
+        <div class="avatar" style="background:#FAEEDA;color:#633806">OB</div>
+        <div><div class="list-name">Oumar Ba</div><div class="list-sub">Sans poste</div></div>
+        <span class="list-badge badge-ok">À jour</span>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Accueil</span>
+      </button>
+      <button class="nav-item active">
+        <i class="ti ti-users"></i>
+        <span>Membres</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-credit-card"></i>
+        <span>Cotisations</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-calendar-event"></i>
+        <span>Réunions</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-dots"></i>
+        <span>Plus</span>
+      </button>
+    </div>
+    <div class="home-indicator"><div></div></div>
+  </div>
+</div>
+
+<!-- Phone 3: Plus (drawer) -->
+<div class="wrap">
+  <div class="phone-label">Menu "Plus"</div>
+  <div class="phone" style="position:relative;">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i>
+      </div>
+    </div>
+    <div class="topbar">
+      <div class="topbar-title">
+        <i class="ti ti-layout-dashboard"></i>
+        Tableau de bord
+      </div>
+      <div class="topbar-bell">
+        <i class="ti ti-bell"></i>
+      </div>
+    </div>
+    <!-- Dimmed content behind -->
+    <div class="page-content" style="opacity:0.3;pointer-events:none;">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-value">18</div></div>
+        <div class="kpi-card"><div class="kpi-value">3</div></div>
+        <div class="kpi-card"><div class="kpi-value">15</div></div>
+        <div class="kpi-card"><div class="kpi-value">842k</div></div>
+      </div>
+    </div>
+    <!-- Sheet overlay -->
+    <div style="position:absolute;bottom:92px;left:0;right:0;background:white;border-radius:16px 16px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.16);padding:0 0 8px;z-index:10;">
+      <!-- Handle -->
+      <div style="display:flex;justify-content:center;padding:10px 0 4px;">
+        <div style="width:36px;height:4px;border-radius:2px;background:#e8e7e3;"></div>
+      </div>
+      <div style="padding:0 16px 8px;font-size:10px;color:#9b9b96;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;">Autres sections</div>
+      <!-- Items -->
+      <div style="display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:0.5px solid #e8e7e3;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#f4f3f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-confetti" style="font-size:18px;color:#6b6b66;"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1a1a18;">Événements</div>
+            <div style="font-size:10.5px;color:#9b9b96;">Calendrier & inscriptions</div>
+          </div>
+          <i class="ti ti-chevron-right" style="margin-left:auto;color:#9b9b96;font-size:16px;"></i>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:0.5px solid #e8e7e3;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#f4f3f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-wallet" style="font-size:18px;color:#6b6b66;"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1a1a18;">Trésorerie</div>
+            <div style="font-size:10.5px;color:#9b9b96;">Transactions & solde</div>
+          </div>
+          <i class="ti ti-chevron-right" style="margin-left:auto;color:#9b9b96;font-size:16px;"></i>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:0.5px solid #e8e7e3;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#f4f3f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-bell" style="font-size:18px;color:#6b6b66;"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1a1a18;">Annonces</div>
+            <div style="font-size:10.5px;color:#9b9b96;">Fil de communication</div>
+          </div>
+          <i class="ti ti-chevron-right" style="margin-left:auto;color:#9b9b96;font-size:16px;"></i>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#f4f3f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-user-circle" style="font-size:18px;color:#6b6b66;"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#1a1a18;">Mon Profil</div>
+            <div style="font-size:10.5px;color:#9b9b96;">Cotisation, présence, paramètres</div>
+          </div>
+          <i class="ti ti-chevron-right" style="margin-left:auto;color:#9b9b96;font-size:16px;"></i>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav" style="position:absolute;bottom:0;left:0;right:0;">
+      <button class="nav-item">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Accueil</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-users"></i>
+        <span>Membres</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-credit-card"></i>
+        <span>Cotisations</span>
+      </button>
+      <button class="nav-item">
+        <i class="ti ti-calendar-event"></i>
+        <span>Réunions</span>
+      </button>
+      <button class="nav-item active">
+        <i class="ti ti-dots"></i>
+        <span>Plus</span>
+      </button>
+    </div>
+    <div class="home-indicator" style="position:absolute;bottom:0;left:0;right:0;"><div></div></div>
+  </div>
+</div>
+
+</body>
+</html>

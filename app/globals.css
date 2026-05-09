@@ -83,6 +83,20 @@ button:not([class]) {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ── Mobile / desktop visibility ── */
+.sidebar-desktop { display: contents; }
+.bottom-nav-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .sidebar-desktop { display: none; }
+  .bottom-nav-mobile { display: contents; }
+
+  /* Reserve space so content isn't hidden behind the fixed bottom nav */
+  .main-content {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 /* ── Responsive grids (2-column layouts) ── */
 /* grid-2col : deux colonnes égales (profil, cotisations, réunions) */
 .grid-2col {

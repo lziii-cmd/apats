@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { getUserFeatures } from "@/lib/permissions";
 import { db } from "@/lib/db";
 import SidebarNav from "@/components/SidebarNav";
+import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import TopbarTitle from "@/components/TopbarTitle";
 import Toast from "@/components/Toast";
@@ -42,14 +43,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: "/app/profil", icon: "ti-user-circle", label: t("profil"), show: true },
   ];
 
+  const isAdmin = session.role === "ADMIN";
+  const canSeeMembers = canSee("MEMBERS_VIEW");
+  const canSeeTreasury = canSee("TREASURY_VIEW");
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <SidebarNav
-        userName={userName}
-        userRole={userRole}
-        userInitials={userInitials}
-        navItems={navItems}
-      />
+      {/* Sidebar — desktop only */}
+      <div className="sidebar-desktop">
+        <SidebarNav
+          userName={userName}
+          userRole={userRole}
+          userInitials={userInitials}
+          navItems={navItems}
+        />
+      </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
         <header
@@ -68,10 +76,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <NotificationBell />
         </header>
 
-        <main style={{ flex: 1, overflowY: "auto" }}>
+        <main className="main-content" style={{ flex: 1, overflowY: "auto" }}>
           {children}
         </main>
       </div>
+
+      {/* Bottom nav — mobile only */}
+      <div className="bottom-nav-mobile">
+        <BottomNav
+          isAdmin={isAdmin}
+          canSeeMembers={canSeeMembers}
+          canSeeTreasury={canSeeTreasury}
+        />
+      </div>
+
       <Toast />
     </div>
   );

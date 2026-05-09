@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { getSession } from "@/lib/auth";
 import { getUserFeatures } from "@/lib/permissions";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import NotificationBell from "@/components/NotificationBell";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -63,7 +64,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="h-12 bg-white border-b border-gray-200 flex items-center justify-end px-4 shrink-0">
+          <NotificationBell />
+        </header>
+        <div className="flex-1 overflow-auto">{children}</div>
+      </div>
     </div>
   );
 }

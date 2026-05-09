@@ -17,6 +17,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "APATS — Amicale des PATs ENSMG",
   description: "Application de gestion de l'Amicale des PATs de l'ENSMG",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "APATS",
+  },
+  icons: {
+    icon: "/icons/icon-192.svg",
+    apple: "/icons/icon-192.svg",
+  },
 };
 
 export default async function RootLayout({
@@ -32,10 +42,19 @@ export default async function RootLayout({
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <meta name="theme-color" content="#1d4ed8" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js'); }); }`,
+          }}
+        />
       </body>
     </html>
   );

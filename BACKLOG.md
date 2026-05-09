@@ -176,7 +176,8 @@ F-001 (scaffolding)
 ---
 
 ### F-008 — Admin : configuration générale
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.2.5
 - **Description** : Paramètres globaux de l'amicale : nom, logo (upload image), langue par défaut de l'interface, année académique en cours.
 - **Dépendances** : F-003
@@ -202,7 +203,8 @@ F-001 (scaffolding)
 ## FEATURES — M2 : CŒUR MÉTIER
 
 ### F-010 — Membres : vue bureau + tableau de bord
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.3, §6
 - **Description** : Liste des membres avec filtres (catégorie, poste, statut cotisation). Fiche détaillée par membre (infos personnelles, poste, catégorie, historique cotisations). Export liste membres PDF et Excel. **Tableau de bord général** post-login pour les membres du bureau : cotisations en retard, prochaine réunion, solde trésorerie, dernières annonces.
 - **Dépendances** : F-006, F-007
@@ -226,7 +228,8 @@ F-001 (scaffolding)
 ---
 
 ### F-012 — Réunions : création, convocation & types
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.5.1, §5.5.2
 - **Description** : Création d'une réunion avec tous les champs (type : Bureau / Assemblée Générale / Extraordinaire, titre, date, heures, lieu, intervenants, ordre du jour, membres convoqués — pour une AG tous les membres sont convoqués automatiquement). Génération QR Code unique par réunion. Envoi convocations (in-app + email). Confirmation présence préalable par membre (sans remplacer l'émargement le jour J).
 - **Dépendances** : F-010
@@ -237,7 +240,8 @@ F-001 (scaffolding)
 ---
 
 ### F-013 — Émargement QR Code (temps réel)
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.5.3
 - **Description** : Affichage QR Code plein écran côté secrétaire. Scan via caméra PWA côté membre (jsQR ou ZXing-js, sans app tierce). Enregistrement instantané de la présence. Corrections manuelles (cocher / décocher un membre). Mise à jour de la liste en **temps réel** via SSE (Server-Sent Events).
 - **Dépendances** : F-012
@@ -249,7 +253,8 @@ F-001 (scaffolding)
 ---
 
 ### F-014 — Clôture & archivage réunion
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.5.4
 - **Description** : Clôture d'une réunion → récapitulatif complet figé et immuable (toutes les infos + liste de présence finale présents / absents / excusés + statistiques de présence). Upload du PV en PDF. Historique complet de toutes les réunions passées accessible.
 - **Dépendances** : F-013
@@ -260,7 +265,8 @@ F-001 (scaffolding)
 ---
 
 ### F-015 — Gestion des événements
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.6
 - **Description** : CRUD événements (titre, date, description, lieu, responsable, budget prévisionnel). Inscription membre via bouton "Je participe". Suivi de la liste des participants. Historique des événements passés et à venir.
 - **Dépendances** : F-010
@@ -273,25 +279,27 @@ F-001 (scaffolding)
 ## FEATURES — M3 : FINANCE & COMMUNICATION
 
 ### F-016 — Trésorerie
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master
 - **IDs CDC** : §5.7
-- **Description** : Vue synthétique (solde actuel, total entrées, total sorties). Enregistrement manuel de transactions (date, montant, catégorie, description). Alimentation automatique depuis les cotisations confirmées. Filtres par période et type de transaction. Export rapport financier PDF et Excel.
+- **Description** : Vue synthétique (solde actuel, total entrées, total sorties). Enregistrement manuel de transactions (date, montant, catégorie, description). Catégories configurables (TxCategory — non enum). Filtres par période et type de transaction. Export Excel.
 - **Dépendances** : F-011
 - **Complexité** : M — 1 jour
 - **Tier** : NORMAL
-- **Risques** : catégories de transactions à définir avec l'utilisateur avant implémentation (fixes ou configurables par admin — point ouvert).
+- **Note** : catégories configurables (décision session 4 — TxCategory table avec isSystem flag).
 - **Acteurs concernés** : Trésorier, Commissaire aux Comptes (lecture selon permissions RBAC)
 
 ---
 
 ### F-017 — Communication interne
-- **Statut** : à faire
+- **Statut** : livré, à valider
+- **Commit** : master / de7a8c9
 - **IDs CDC** : §5.8
-- **Description** : Fil d'annonces lisible par tous les membres connectés. Création d'annonce (titre, contenu, destinataires : tous ou groupe ciblé). Envoi notification in-app + email aux destinataires. Historique des annonces.
+- **Description** : Fil d'annonces avec 6 modes de ciblage : ALL, BUREAU, HORS_BUREAU, CATEGORY, POST (multi via AnnouncementPost), SELECT (sélection manuelle via AnnouncementRecipient). Notifications in-app + email. 246 tests.
 - **Dépendances** : F-010
 - **Complexité** : M — 1 jour
 - **Tier** : NORMAL
-- **Acteurs concernés** : Bureau (création, selon permissions), Membre Simple (lecture)
+- **Acteurs concernés** : Bureau (création selon permissions ANNOUNCEMENTS_CREATE), Membre Simple (lecture filtrée)
 
 ---
 

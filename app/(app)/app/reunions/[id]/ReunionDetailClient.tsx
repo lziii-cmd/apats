@@ -52,6 +52,7 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pvLoading, setPvLoading] = useState(false);
   const [pvUrl, setPvUrl] = useState(meeting.pvUrl);
+  const [pvError, setPvError] = useState("");
 
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("fr-FR", {
@@ -80,14 +81,19 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
     const file = e.target.files?.[0];
     if (!file) return;
     setPvLoading(true);
+    setPvError("");
     try {
       const form = new FormData();
       form.append("file", file);
       const res = await fetch(`/api/reunions/${meeting.id}/pv`, { method: "POST", body: form });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const data = await res.json();
         setPvUrl(data.pvUrl);
+      } else {
+        setPvError(data.error ?? `Erreur ${res.status}`);
       }
+    } catch {
+      setPvError("Erreur réseau. Réessayez.");
     } finally {
       setPvLoading(false);
       e.target.value = "";
@@ -96,9 +102,14 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
 
   async function handleDeletePV() {
     setPvLoading(true);
+    setPvError("");
     try {
-      await fetch(`/api/reunions/${meeting.id}/pv`, { method: "DELETE" });
-      setPvUrl(null);
+      const res = await fetch(`/api/reunions/${meeting.id}/pv`, { method: "DELETE" });
+      if (res.ok) setPvUrl(null);
+      else {
+        const data = await res.json().catch(() => ({}));
+        setPvError(data.error ?? `Erreur ${res.status}`);
+      }
     } finally {
       setPvLoading(false);
     }
@@ -318,6 +329,9 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
             ))}
 
             {/* PV */}
+            {pvError && (
+              <p className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded">{pvError}</p>
+            )}
             <div className="mt-4 p-4 bg-gray-50 rounded-lg flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-700">{t("pvTitle")}</p>

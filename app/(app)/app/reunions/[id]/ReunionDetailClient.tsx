@@ -41,11 +41,6 @@ const TYPE_COLORS = {
   EXTRAORDINARY: "bg-orange-100 text-orange-700",
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  BUREAU: "Bureau",
-  AG: "Assemblée Générale",
-  EXTRAORDINARY: "Extraordinaire",
-};
 
 export default function ReunionDetailClient({ meeting, myAttendee, canCreate, canAttend }: Props) {
   const t = useTranslations("app.reunions");
@@ -106,14 +101,14 @@ export default function ReunionDetailClient({ meeting, myAttendee, canCreate, ca
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${TYPE_COLORS[meeting.type]}`}>
-              {TYPE_LABELS[meeting.type]}
+              {t({ BUREAU: "typeBureau", AG: "typeAG", EXTRAORDINARY: "typeExtraordinary" }[meeting.type] as never)}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded ${
               meeting.status === "OPEN" ? "bg-emerald-100 text-emerald-700" :
               meeting.status === "CLOSED" ? "bg-slate-100 text-slate-500" :
               "bg-gray-100 text-gray-600"
             }`}>
-              {t(`status${meeting.status.charAt(0) + meeting.status.slice(1).toLowerCase()}` as never)}
+              {t({ PLANNED: "statusPlanned", OPEN: "statusOpen", CLOSED: "statusClosed" }[meeting.status] as never)}
             </span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{meeting.title}</h1>

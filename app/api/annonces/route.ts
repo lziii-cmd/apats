@@ -14,6 +14,22 @@ export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
+  const include = {
+    createdBy: { select: { name: true } },
+    targetCategory: { select: { name: true } },
+    targetPosts: { select: { post: { select: { name: true } } } },
+    _count: { select: { targetRecipients: true } },
+  } as const;
+
+  // Les admins voient toutes les annonces sans filtre
+  if (session.role === "ADMIN") {
+    const announcements = await db.announcement.findMany({
+      include,
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(announcements);
+  }
+
   const user = await db.user.findUnique({
     where: { id: session.userId },
     select: {
@@ -29,27 +45,19 @@ export async function GET() {
     where: {
       OR: [
         { targetType: "ALL" },
-        { targetType: "CATEGORY", targetCategoryId: user?.categoryId ?? undefined },
-        {
-          targetType: "POST",
-          targetPosts: {
-            some: { postId: { in: userPostIds.length ? userPostIds : ["__none__"] } },
-          },
-        },
+        ...(user?.categoryId
+          ? [{ targetType: "CATEGORY" as AnnouncementTarget, targetCategoryId: user.categoryId }]
+          : []),
+        ...(userPostIds.length > 0
+          ? [{ targetType: "POST" as AnnouncementTarget, targetPosts: { some: { postId: { in: userPostIds } } } }]
+          : []),
         ...(hasMandate ? [{ targetType: "BUREAU" as AnnouncementTarget }] : []),
         ...(!hasMandate ? [{ targetType: "HORS_BUREAU" as AnnouncementTarget }] : []),
-        { targetType: "SELECT", targetRecipients: { some: { userId: session.userId } } },
-        ...(session.role === "ADMIN"
-          ? [{}]
-          : [{ createdById: session.userId }]),
+        { targetType: "SELECT" as AnnouncementTarget, targetRecipients: { some: { userId: session.userId } } },
+        { createdById: session.userId },
       ],
     },
-    include: {
-      createdBy: { select: { name: true } },
-      targetCategory: { select: { name: true } },
-      targetPosts: { select: { post: { select: { name: true } } } },
-      _count: { select: { targetRecipients: true } },
-    },
+    include,
     orderBy: { createdAt: "desc" },
   });
 

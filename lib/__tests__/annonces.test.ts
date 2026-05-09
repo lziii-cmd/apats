@@ -118,7 +118,7 @@ describe("GET /api/annonces", () => {
     expect((selectFilter as { targetRecipients?: { some: { userId: string } } })?.targetRecipients?.some.userId).toBe("u1");
   });
 
-  it("utilise __none__ pour POST quand le membre n'a pas de mandat", async () => {
+  it("n'inclut pas de filtre POST quand le membre n'a pas de mandat", async () => {
     vi.mocked(getSession).mockResolvedValue(mockMember as never);
     vi.mocked(db.user.findUnique).mockResolvedValue({ categoryId: null, mandates: [] } as never);
     vi.mocked(db.announcement.findMany).mockResolvedValue([] as never);
@@ -128,8 +128,8 @@ describe("GET /api/annonces", () => {
     const orClause = (call as { where: { OR: unknown[] } }).where.OR;
     const postFilter = orClause.find(
       (c: unknown) => (c as { targetType?: string }).targetType === "POST"
-    ) as { targetPosts?: { some: { postId: { in: string[] } } } } | undefined;
-    expect(postFilter?.targetPosts?.some.postId.in).toContain("__none__");
+    );
+    expect(postFilter).toBeUndefined();
   });
 });
 

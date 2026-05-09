@@ -106,7 +106,7 @@ export default function ReunionsClient({ meetings, canCreate }: Props) {
           {t("noReunions")}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
           {filtered.map((m) => {
             const date = new Date(m.date);
             const day = date.getDate();

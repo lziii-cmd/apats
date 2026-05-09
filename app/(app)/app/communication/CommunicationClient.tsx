@@ -213,6 +213,14 @@ export default function CommunicationClient({
     }
   }
 
+  /* Stats for sidebar */
+  const last30 = announcements.filter((a) => {
+    const d = new Date(a.createdAt);
+    return (Date.now() - d.getTime()) < 30 * 24 * 60 * 60 * 1000;
+  }).length;
+  const byType: Record<string, number> = {};
+  announcements.forEach((a) => { byType[a.targetType] = (byType[a.targetType] ?? 0) + 1; });
+
   return (
     <div style={{ padding: "22px 24px" }}>
       {/* Header */}
@@ -223,22 +231,12 @@ export default function CommunicationClient({
             {announcements.length} annonce{announcements.length > 1 ? "s" : ""}
           </p>
         </div>
-        {canCreate && (
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              fontSize: "12px", padding: "7px 13px", display: "flex", alignItems: "center", gap: "6px",
-              background: "#14171c", color: "white", border: "1px solid #14171c",
-              borderRadius: "var(--border-radius-md)", cursor: "pointer",
-            }}
-          >
-            <i className="ti ti-plus" style={{ fontSize: "13px" }} />
-            {t("newAnnouncement")}
-          </button>
-        )}
       </div>
 
-      {/* Feed */}
+      {/* 2-column layout: feed + sidebar */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.65fr 1fr", gap: "16px", alignItems: "start" }}>
+        {/* ── Left: Feed ── */}
+        <div>
       {loading ? (
         <div style={{ padding: "40px 0", textAlign: "center", color: "var(--color-text-tertiary)", fontSize: "13px" }}>
           {tc("loading")}
@@ -271,7 +269,7 @@ export default function CommunicationClient({
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {announcements.map((a) => {
+          {announcements.map((a: Announcement) => {
             const color = authorColor(a.createdBy.name);
             const initials = getInitials(a.createdBy.name);
             return (
@@ -354,6 +352,78 @@ export default function CommunicationClient({
           })}
         </div>
       )}
+
+        </div>{/* end left feed */}
+
+        {/* ── Right: Sidebar ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* CTA */}
+          {canCreate && (
+            <div
+              style={{
+                border: "0.5px solid var(--color-border-tertiary)",
+                borderRadius: "var(--border-radius-md)",
+                padding: "16px",
+              }}
+            >
+              <div style={{ fontSize: "12px", fontWeight: 500, marginBottom: "8px", color: "var(--color-text-primary)" }}>
+                Publier une annonce
+              </div>
+              <p style={{ fontSize: "11.5px", color: "var(--color-text-secondary)", margin: "0 0 12px", lineHeight: 1.45 }}>
+                Informez les membres de l&apos;amicale — vous pouvez cibler par catégorie, poste ou sélection manuelle.
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                style={{
+                  width: "100%", fontSize: "12px", padding: "8px 0",
+                  background: "#14171c", color: "white", border: "none",
+                  borderRadius: "var(--border-radius-md)", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                }}
+              >
+                <i className="ti ti-plus" style={{ fontSize: "13px" }} />
+                {t("newAnnouncement")}
+              </button>
+            </div>
+          )}
+
+          {/* Stats */}
+          {!loading && !fetchError && (
+            <div
+              style={{
+                border: "0.5px solid var(--color-border-tertiary)",
+                borderRadius: "var(--border-radius-md)",
+                padding: "16px",
+              }}
+            >
+              <div style={{ fontSize: "12px", fontWeight: 500, marginBottom: "12px", color: "var(--color-text-primary)" }}>
+                Statistiques
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  { label: "Total annonces", value: announcements.length },
+                  { label: "30 derniers jours", value: last30 },
+                  { label: "Tous les membres", value: byType["ALL"] ?? 0 },
+                  { label: "Bureau", value: byType["BUREAU"] ?? 0 },
+                  { label: "Ciblées", value: (byType["CATEGORY"] ?? 0) + (byType["POST"] ?? 0) + (byType["SELECT"] ?? 0) + (byType["HORS_BUREAU"] ?? 0) },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "5px 0",
+                      borderBottom: "0.5px solid var(--color-border-tertiary)",
+                    }}
+                  >
+                    <span style={{ fontSize: "11.5px", color: "var(--color-text-secondary)" }}>{s.label}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--color-text-primary)" }}>{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>{/* end right sidebar */}
+      </div>{/* end grid */}
 
       {/* Modal — nouvelle annonce */}
       {showForm && (

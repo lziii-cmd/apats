@@ -234,7 +234,7 @@ export default function CommunicationClient({
       </div>
 
       {/* 2-column layout: feed + sidebar */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.65fr 1fr", gap: "16px", alignItems: "start" }}>
+      <div className="grid-sidebar">
         {/* ── Left: Feed ── */}
         <div>
       {loading ? (

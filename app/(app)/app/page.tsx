@@ -125,7 +125,7 @@ export default async function DashboardPage() {
             createdAt: true,
             monthlyPayments: {
               where: { status: "CONFIRMED" },
-              select: { year: true, month: true, amount: true },
+              select: { year: true, month: true, amountPaid: true },
             },
           },
         })
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
     const collected = cotisationStats
       ? cotisationStats.reduce((sum, m) => {
           const matched = m.monthlyPayments.filter((p) => p.month === monthNum);
-          return sum + matched.reduce((s, p) => s + p.amount, 0);
+          return sum + matched.reduce((s, p) => s + p.amountPaid, 0);
         }, 0)
       : 0;
     return { month: label, collected, expected: expectedPerMonth || totalMembers * 2000 };

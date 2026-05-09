@@ -108,6 +108,8 @@ model User {
   monthlyPayments      MonthlyPayment[]
   meetingsCreated      Meeting[]
   meetingAttendances   MeetingAttendee[]
+  eventsCreated        Event[]
+  eventParticipations  EventParticipant[]
   passwordResetToken   String?           @unique
   passwordResetExpiry  DateTime?
   isActive             Boolean           @default(true)
@@ -249,5 +251,36 @@ model MeetingAttendee {
 
   @@unique([meetingId, userId])
   @@index([meetingId])
+  @@index([userId])
+}
+
+model Event {
+  id           String             @id @default(cuid())
+  title        String
+  date         DateTime
+  endDate      DateTime?
+  location     String
+  description  String
+  responsible  String?
+  budget       Int?
+  createdById  String
+  createdBy    User               @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  participants EventParticipant[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([date])
+}
+
+model EventParticipant {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+  @@index([eventId])
   @@index([userId])
 }

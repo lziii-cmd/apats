@@ -396,6 +396,12 @@
       "source": "Source",
       "deleteConfirm": "Delete this transaction?",
       "addTitle": "New transaction",
+      "manageCategories": "Manage categories",
+      "addCategory": "Add a category",
+      "noCategories": "No categories.",
+      "categoryNamePlaceholder": "Category name",
+      "selectCategory": "— Select a category —",
+      "typeBoth": "Income / Expense",
       "jan": "January", "feb": "February", "mar": "March", "apr": "April",
       "may": "May", "jun": "June", "jul": "July", "aug": "August",
       "sep": "September", "oct": "October", "nov": "November", "dec": "December"

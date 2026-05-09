@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 
+type TxCategory = { id: string; name: string; type: "INCOME" | "EXPENSE" | "BOTH"; isSystem: boolean };
+
 type TxRow = {
   id: string;
   date: string;
   type: "INCOME" | "EXPENSE";
-  category: string;
+  categoryId: string | null;
+  categoryName: string;
   description: string;
   amount: number;
   source: "auto" | "manual";
@@ -19,17 +22,6 @@ type Summary = { totalIncome: number; totalExpense: number; balance: number };
 type Props = { canManage: boolean; canExport: boolean };
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"] as const;
-
-const MANUAL_CATEGORIES = ["EVENEMENT", "MATERIEL", "FRAIS_ADMIN", "AUTRE"] as const;
-
-const CATEGORY_KEY: Record<string, string> = {
-  COTISATION: "catCotisation",
-  CARTE_MEMBRE: "catCarteMembre",
-  EVENEMENT: "catEvenement",
-  MATERIEL: "catMateriel",
-  FRAIS_ADMIN: "catFraisAdmin",
-  AUTRE: "catAutre",
-};
 
 function fmt(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
@@ -43,32 +35,48 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
   const [filterYear, setFilterYear] = useState<string>(String(currentYear));
   const [filterMonth, setFilterMonth] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
-  const [filterCategory, setFilterCategory] = useState<string>("");
+  const [filterCategoryId, setFilterCategoryId] = useState<string>("");
 
   const [summary, setSummary] = useState<Summary | null>(null);
   const [transactions, setTransactions] = useState<TxRow[]>([]);
+  const [categories, setCategories] = useState<TxCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Ajout transaction
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     type: "EXPENSE",
-    category: "AUTRE",
+    categoryId: "",
     description: "",
     amount: "",
   });
   const [addLoading, setAddLoading] = useState(false);
+
+  // Gestion catégories
+  const [showCategories, setShowCategories] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatType, setNewCatType] = useState<"INCOME" | "EXPENSE" | "BOTH">("BOTH");
+  const [catLoading, setCatLoading] = useState(false);
+  const [catError, setCatError] = useState("");
+
+  // Suppression transaction
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const fetchCategories = useCallback(async () => {
+    const res = await fetch("/api/tresorerie/categories");
+    if (res.ok) setCategories(await res.json());
+  }, []);
 
   const buildParams = useCallback(() => {
     const p = new URLSearchParams();
     if (filterYear) p.set("year", filterYear);
     if (filterMonth) p.set("month", filterMonth);
     if (filterType) p.set("type", filterType);
-    if (filterCategory) p.set("category", filterCategory);
+    if (filterCategoryId) p.set("categoryId", filterCategoryId);
     return p.toString();
-  }, [filterYear, filterMonth, filterType, filterCategory]);
+  }, [filterYear, filterMonth, filterType, filterCategoryId]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -85,10 +93,16 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
     }
   }, [buildParams]);
 
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Catégories filtrées selon le type sélectionné dans le formulaire d'ajout
+  const addFormCategories = categories.filter(
+    (c) => c.type === "BOTH" || c.type === addForm.type
+  );
+
   async function handleAdd() {
-    if (!addForm.description || !addForm.amount) return;
+    if (!addForm.description || !addForm.amount || !addForm.categoryId) return;
     setAddLoading(true);
     try {
       const res = await fetch("/api/tresorerie/transactions", {
@@ -97,18 +111,56 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
         body: JSON.stringify({
           date: addForm.date,
           type: addForm.type,
-          category: addForm.category,
+          categoryId: addForm.categoryId,
           description: addForm.description,
           amount: parseInt(addForm.amount),
         }),
       });
       if (res.ok) {
         setShowAdd(false);
-        setAddForm({ date: new Date().toISOString().slice(0, 10), type: "EXPENSE", category: "AUTRE", description: "", amount: "" });
+        setAddForm({ date: new Date().toISOString().slice(0, 10), type: "EXPENSE", categoryId: "", description: "", amount: "" });
         fetchData();
       }
     } finally {
       setAddLoading(false);
+    }
+  }
+
+  async function handleAddCategory() {
+    if (!newCatName.trim()) return;
+    setCatLoading(true);
+    setCatError("");
+    try {
+      const res = await fetch("/api/tresorerie/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCatName.trim(), type: newCatType }),
+      });
+      if (res.ok) {
+        setNewCatName("");
+        fetchCategories();
+      } else {
+        const data = await res.json();
+        setCatError(data.error ?? "Erreur");
+      }
+    } finally {
+      setCatLoading(false);
+    }
+  }
+
+  async function handleDeleteCategory(id: string) {
+    setCatLoading(true);
+    setCatError("");
+    try {
+      const res = await fetch(`/api/tresorerie/categories/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchCategories();
+      } else {
+        const data = await res.json();
+        setCatError(data.error ?? "Erreur");
+      }
+    } finally {
+      setCatLoading(false);
     }
   }
 
@@ -124,8 +176,7 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
   }
 
   function handleExport() {
-    const qs = buildParams();
-    window.open(`/api/tresorerie/export?${qs}`, "_blank");
+    window.open(`/api/tresorerie/export?${buildParams()}`, "_blank");
   }
 
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -134,7 +185,13 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
+          {canManage && (
+            <button onClick={() => setShowCategories(true)}
+              className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors">
+              {t("manageCategories")}
+            </button>
+          )}
           {canExport && (
             <button onClick={handleExport}
               className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors">
@@ -186,19 +243,20 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
           ))}
         </select>
 
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
+        <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setFilterCategoryId(""); }}
           className="border border-gray-300 rounded px-3 py-1.5 text-sm">
           <option value="">{t("allTypes")}</option>
           <option value="INCOME">{t("typeIncome")}</option>
           <option value="EXPENSE">{t("typeExpense")}</option>
         </select>
 
-        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
+        <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(e.target.value)}
           className="border border-gray-300 rounded px-3 py-1.5 text-sm">
           <option value="">{t("allCategories")}</option>
-          {Object.entries(CATEGORY_KEY).map(([val, key]) => (
-            <option key={val} value={val}>{t(key as never)}</option>
-          ))}
+          {categories
+            .filter((c) => !filterType || c.type === "BOTH" || c.type === filterType)
+            .map((c) => <option key={c.id} value={c.id}>{c.name}</option>)
+          }
         </select>
       </div>
 
@@ -226,12 +284,12 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
                     {new Date(tx.date).toLocaleDateString("fr-FR")}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                    <span className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium ${
                       tx.type === "INCOME"
                         ? "bg-green-100 text-green-700"
                         : "bg-orange-100 text-orange-700"
                     }`}>
-                      {t(CATEGORY_KEY[tx.category] as never)}
+                      {tx.categoryName}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-700">{tx.description}</td>
@@ -257,7 +315,7 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
         </div>
       )}
 
-      {/* Modal ajout */}
+      {/* Modal ajout transaction */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
@@ -272,7 +330,7 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
               <div>
                 <label className="block text-xs text-gray-600 mb-1">{t("type")}</label>
                 <select value={addForm.type}
-                  onChange={(e) => setAddForm({ ...addForm, type: e.target.value })}
+                  onChange={(e) => setAddForm({ ...addForm, type: e.target.value, categoryId: "" })}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                   <option value="INCOME">{t("typeIncome")}</option>
                   <option value="EXPENSE">{t("typeExpense")}</option>
@@ -280,11 +338,12 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
               </div>
               <div>
                 <label className="block text-xs text-gray-600 mb-1">{t("category")}</label>
-                <select value={addForm.category}
-                  onChange={(e) => setAddForm({ ...addForm, category: e.target.value })}
+                <select value={addForm.categoryId}
+                  onChange={(e) => setAddForm({ ...addForm, categoryId: e.target.value })}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                  {MANUAL_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{t(CATEGORY_KEY[c] as never)}</option>
+                  <option value="">{t("selectCategory")}</option>
+                  {addFormCategories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -308,7 +367,8 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
                 className="flex-1 border border-gray-300 text-gray-700 py-2 rounded text-sm hover:bg-gray-50">
                 {tc("cancel")}
               </button>
-              <button onClick={handleAdd} disabled={addLoading || !addForm.description || !addForm.amount}
+              <button onClick={handleAdd}
+                disabled={addLoading || !addForm.description || !addForm.amount || !addForm.categoryId}
                 className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded text-sm disabled:opacity-60">
                 {addLoading ? "…" : tc("confirm")}
               </button>
@@ -317,7 +377,68 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
         </div>
       )}
 
-      {/* Modal suppression */}
+      {/* Modal gestion catégories */}
+      {showCategories && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+            <h2 className="text-base font-semibold mb-4">{t("manageCategories")}</h2>
+
+            {/* Liste des catégories */}
+            <div className="mb-4 max-h-48 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-lg">
+              {categories.length === 0 ? (
+                <p className="text-sm text-gray-500 px-4 py-3">{t("noCategories")}</p>
+              ) : categories.map((c) => (
+                <div key={c.id} className="flex items-center justify-between px-4 py-2.5">
+                  <div>
+                    <span className="text-sm text-gray-800">{c.name}</span>
+                    <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                      c.type === "INCOME" ? "bg-green-100 text-green-700"
+                      : c.type === "EXPENSE" ? "bg-orange-100 text-orange-700"
+                      : "bg-gray-100 text-gray-600"
+                    }`}>
+                      {c.type === "INCOME" ? t("typeIncome") : c.type === "EXPENSE" ? t("typeExpense") : t("typeBoth")}
+                    </span>
+                  </div>
+                  {!c.isSystem && (
+                    <button onClick={() => handleDeleteCategory(c.id)} disabled={catLoading}
+                      className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40">
+                      {tc("delete")}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Ajout catégorie */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-700">{t("addCategory")}</p>
+              <input type="text" value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                placeholder={t("categoryNamePlaceholder")} />
+              <select value={newCatType}
+                onChange={(e) => setNewCatType(e.target.value as "INCOME" | "EXPENSE" | "BOTH")}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                <option value="INCOME">{t("typeIncome")}</option>
+                <option value="EXPENSE">{t("typeExpense")}</option>
+                <option value="BOTH">{t("typeBoth")}</option>
+              </select>
+              {catError && <p className="text-xs text-red-600">{catError}</p>}
+              <button onClick={handleAddCategory} disabled={catLoading || !newCatName.trim()}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded text-sm disabled:opacity-60">
+                {catLoading ? "…" : t("addCategory")}
+              </button>
+            </div>
+
+            <button onClick={() => { setShowCategories(false); setCatError(""); }}
+              className="w-full mt-3 border border-gray-300 text-gray-700 py-2 rounded text-sm hover:bg-gray-50">
+              {tc("cancel")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal suppression transaction */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 p-6">

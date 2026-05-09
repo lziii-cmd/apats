@@ -60,11 +60,10 @@ enum TransactionType {
   EXPENSE
 }
 
-enum TransactionCategory {
-  EVENEMENT
-  MATERIEL
-  FRAIS_ADMIN
-  AUTRE
+enum TxCatType {
+  INCOME
+  EXPENSE
+  BOTH
 }
 
 enum Feature {
@@ -298,19 +297,29 @@ model EventParticipant {
   @@index([userId])
 }
 
+model TxCategory {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  type         TxCatType
+  isSystem     Boolean       @default(false)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+}
+
 model Transaction {
-  id          String              @id @default(cuid())
+  id          String      @id @default(cuid())
   date        DateTime
   type        TransactionType
-  category    TransactionCategory
+  categoryId  String
+  category    TxCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   description String
-  amount      Int                 // en FCFA
+  amount      Int         // en FCFA
   createdById String
-  createdBy   User                @relation(fields: [createdById], references: [id], onDelete: Restrict)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   @@index([date])
   @@index([type])
-  @@index([category])
+  @@index([categoryId])
 }

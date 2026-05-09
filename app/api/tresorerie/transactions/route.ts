@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
-import { Feature, TransactionCategory, TransactionType } from "@prisma/client";
+import { Feature, TransactionType } from "@prisma/client";
 
 const VALID_TYPES: TransactionType[] = ["INCOME", "EXPENSE"];
-const VALID_CATEGORIES: TransactionCategory[] = ["EVENEMENT", "MATERIEL", "FRAIS_ADMIN", "AUTRE"];
 
-// GET /api/tresorerie/transactions?year=2026&month=5&type=EXPENSE&category=MATERIEL
+// GET /api/tresorerie/transactions?year=2026&month=5&type=EXPENSE&categoryId=xxx
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
@@ -21,9 +20,8 @@ export async function GET(req: NextRequest) {
   const year = searchParams.get("year") ? parseInt(searchParams.get("year")!) : null;
   const month = searchParams.get("month") ? parseInt(searchParams.get("month")!) : null;
   const typeFilter = searchParams.get("type") as TransactionType | null;
-  const categoryFilter = searchParams.get("category") as TransactionCategory | null;
+  const categoryId = searchParams.get("categoryId");
 
-  // Plage de dates
   let dateFrom: Date | undefined;
   let dateTo: Date | undefined;
   if (year && month) {
@@ -39,13 +37,16 @@ export async function GET(req: NextRequest) {
       where: {
         ...(dateFrom && dateTo ? { date: { gte: dateFrom, lte: dateTo } } : {}),
         ...(typeFilter && VALID_TYPES.includes(typeFilter) ? { type: typeFilter } : {}),
-        ...(categoryFilter && VALID_CATEGORIES.includes(categoryFilter) ? { category: categoryFilter } : {}),
+        ...(categoryId ? { categoryId } : {}),
       },
-      include: { createdBy: { select: { name: true } } },
+      include: {
+        createdBy: { select: { name: true } },
+        category: { select: { name: true, type: true } },
+      },
       orderBy: { date: "desc" },
     }),
-    // Cotisations mensuelles (INCOME, catégorie COTISATION — auto)
-    (typeFilter && typeFilter !== "INCOME") ? Promise.resolve([]) :
+    // Cotisations mensuelles (INCOME auto) — masquées si filtre EXPENSE ou categoryId
+    (typeFilter === "EXPENSE" || categoryId) ? Promise.resolve([]) :
     db.monthlyPayment.findMany({
       where: {
         status: "CONFIRMED",
@@ -54,8 +55,8 @@ export async function GET(req: NextRequest) {
       include: { user: { select: { name: true } } },
       orderBy: { updatedAt: "desc" },
     }),
-    // Cartes membres (INCOME, catégorie CARTE_MEMBRE — auto)
-    (typeFilter && typeFilter !== "INCOME") ? Promise.resolve([]) :
+    // Cartes membres (INCOME auto) — masquées si filtre EXPENSE ou categoryId
+    (typeFilter === "EXPENSE" || categoryId) ? Promise.resolve([]) :
     db.memberCard.findMany({
       where: {
         status: "CONFIRMED",
@@ -66,14 +67,12 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
-  // Skip cotisations si filtre catégorie est une catégorie manuelle
-  const skipCotisations = categoryFilter && VALID_CATEGORIES.includes(categoryFilter);
-
   type TxRow = {
     id: string;
     date: string;
     type: "INCOME" | "EXPENSE";
-    category: string;
+    categoryId: string | null;
+    categoryName: string;
     description: string;
     amount: number;
     source: "auto" | "manual";
@@ -82,13 +81,13 @@ export async function GET(req: NextRequest) {
 
   const rows: TxRow[] = [];
 
-  // Transactions manuelles
   for (const tx of manualTx) {
     rows.push({
       id: tx.id,
       date: tx.date.toISOString(),
       type: tx.type,
-      category: tx.category,
+      categoryId: tx.categoryId,
+      categoryName: tx.category.name,
       description: tx.description,
       amount: tx.amount,
       source: "manual",
@@ -96,35 +95,32 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  if (!skipCotisations) {
-    // Mensualités confirmées
-    for (const p of monthlyPayments) {
-      rows.push({
-        id: `mp-${p.id}`,
-        date: (p.confirmedAt ?? p.updatedAt).toISOString(),
-        type: "INCOME",
-        category: "COTISATION",
-        description: `Cotisation ${p.month}/${p.year} — ${p.user.name}`,
-        amount: p.amountPaid,
-        source: "auto",
-      });
-    }
-
-    // Cartes membres confirmées
-    for (const c of memberCards) {
-      rows.push({
-        id: `mc-${c.id}`,
-        date: (c.confirmedAt ?? c.updatedAt).toISOString(),
-        type: "INCOME",
-        category: "CARTE_MEMBRE",
-        description: `Carte membre ${c.academicYear} — ${c.user.name}`,
-        amount: c.pricePaid,
-        source: "auto",
-      });
-    }
+  for (const p of monthlyPayments) {
+    rows.push({
+      id: `mp-${p.id}`,
+      date: (p.confirmedAt ?? p.updatedAt).toISOString(),
+      type: "INCOME",
+      categoryId: null,
+      categoryName: "Cotisation mensuelle",
+      description: `Cotisation ${p.month}/${p.year} — ${p.user.name}`,
+      amount: p.amountPaid,
+      source: "auto",
+    });
   }
 
-  // Trier par date décroissante
+  for (const c of memberCards) {
+    rows.push({
+      id: `mc-${c.id}`,
+      date: (c.confirmedAt ?? c.updatedAt).toISOString(),
+      type: "INCOME",
+      categoryId: null,
+      categoryName: "Carte de membre",
+      description: `Carte membre ${c.academicYear} — ${c.user.name}`,
+      amount: c.pricePaid,
+      source: "auto",
+    });
+  }
+
   rows.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return NextResponse.json(rows);
@@ -140,33 +136,33 @@ export async function POST(req: NextRequest) {
     (await hasPermission(session.userId, "TREASURY_MANAGE" as Feature));
   if (!canManage) return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
 
-  let body: { date?: string; type?: string; category?: string; description?: string; amount?: number };
+  let body: { date?: string; type?: string; categoryId?: string; description?: string; amount?: number };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Corps invalide." }, { status: 400 });
   }
 
-  const { date, type, category, description, amount } = body;
+  const { date, type, categoryId, description, amount } = body;
 
-  if (!date || !type || !category || !description || amount == null) {
+  if (!date || !type || !categoryId || !description || amount == null) {
     return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
   }
   if (!VALID_TYPES.includes(type as TransactionType)) {
     return NextResponse.json({ error: "Type invalide." }, { status: 400 });
   }
-  if (!VALID_CATEGORIES.includes(category as TransactionCategory)) {
-    return NextResponse.json({ error: "Catégorie invalide." }, { status: 400 });
-  }
   if (amount <= 0) {
     return NextResponse.json({ error: "Le montant doit être positif." }, { status: 400 });
   }
+
+  const cat = await db.txCategory.findUnique({ where: { id: categoryId } });
+  if (!cat) return NextResponse.json({ error: "Catégorie introuvable." }, { status: 404 });
 
   const tx = await db.transaction.create({
     data: {
       date: new Date(date),
       type: type as TransactionType,
-      category: category as TransactionCategory,
+      categoryId,
       description,
       amount,
       createdById: session.userId,

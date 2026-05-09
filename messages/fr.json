@@ -396,6 +396,12 @@
       "source": "Source",
       "deleteConfirm": "Supprimer cette transaction ?",
       "addTitle": "Nouvelle transaction",
+      "manageCategories": "Gérer les catégories",
+      "addCategory": "Ajouter une catégorie",
+      "noCategories": "Aucune catégorie.",
+      "categoryNamePlaceholder": "Nom de la catégorie",
+      "selectCategory": "— Choisir une catégorie —",
+      "typeBoth": "Entrée / Sortie",
       "jan": "Janvier", "feb": "Février", "mar": "Mars", "apr": "Avril",
       "may": "Mai", "jun": "Juin", "jul": "Juillet", "aug": "Août",
       "sep": "Septembre", "oct": "Octobre", "nov": "Novembre", "dec": "Décembre"

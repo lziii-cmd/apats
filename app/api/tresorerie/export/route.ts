@@ -5,14 +5,6 @@ import { hasPermission } from "@/lib/permissions";
 import { Feature } from "@prisma/client";
 import * as XLSX from "xlsx";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  COTISATION: "Cotisation mensuelle",
-  CARTE_MEMBRE: "Carte de membre",
-  EVENEMENT: "Événement",
-  MATERIEL: "Matériel",
-  FRAIS_ADMIN: "Frais administratifs",
-  AUTRE: "Autre",
-};
 
 // GET /api/tresorerie/export?year=2026&month=5
 export async function GET(req: NextRequest) {
@@ -41,7 +33,10 @@ export async function GET(req: NextRequest) {
   const [manualTx, monthlyPayments, memberCards] = await Promise.all([
     db.transaction.findMany({
       where: dateFrom && dateTo ? { date: { gte: dateFrom, lte: dateTo } } : {},
-      include: { createdBy: { select: { name: true } } },
+      include: {
+        createdBy: { select: { name: true } },
+        category: { select: { name: true } },
+      },
       orderBy: { date: "asc" },
     }),
     db.monthlyPayment.findMany({
@@ -78,7 +73,7 @@ export async function GET(req: NextRequest) {
     rows.push({
       Date: (p.confirmedAt ?? p.updatedAt).toLocaleDateString("fr-FR"),
       Type: "Entrée",
-      Catégorie: CATEGORY_LABELS["COTISATION"],
+      Catégorie: "Cotisation mensuelle",
       Description: `Cotisation ${p.month}/${p.year} — ${p.user.name}`,
       "Entrée (FCFA)": p.amountPaid,
       "Sortie (FCFA)": "",
@@ -90,7 +85,7 @@ export async function GET(req: NextRequest) {
     rows.push({
       Date: (c.confirmedAt ?? c.updatedAt).toLocaleDateString("fr-FR"),
       Type: "Entrée",
-      Catégorie: CATEGORY_LABELS["CARTE_MEMBRE"],
+      Catégorie: "Carte de membre",
       Description: `Carte membre ${c.academicYear} — ${c.user.name}`,
       "Entrée (FCFA)": c.pricePaid,
       "Sortie (FCFA)": "",
@@ -102,7 +97,7 @@ export async function GET(req: NextRequest) {
     rows.push({
       Date: tx.date.toLocaleDateString("fr-FR"),
       Type: tx.type === "INCOME" ? "Entrée" : "Sortie",
-      Catégorie: CATEGORY_LABELS[tx.category] ?? tx.category,
+      Catégorie: tx.category.name,
       Description: tx.description,
       "Entrée (FCFA)": tx.type === "INCOME" ? tx.amount : "",
       "Sortie (FCFA)": tx.type === "EXPENSE" ? tx.amount : "",

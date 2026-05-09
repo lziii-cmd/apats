@@ -1,6 +1,6 @@
 # MEMORY.md — Mémoire du projet
 
-**Dernière mise à jour** : 2026-05-09 (session 4)
+**Dernière mise à jour** : 2026-05-09 (session 5)
 
 ---
 
@@ -36,26 +36,26 @@
 > (procédure de reconnaissance dans CLAUDE.md). Sert à détecter les dérives.
 
 - **Branche** : master
-- **Dernier commit connu** : de7a8c9 — feat(communication): ciblage avancé annonces — bureau, hors-bureau, multi-postes, sélection manuelle
+- **Dernier commit connu** : d327839 — chore(backlog): F-018 et F-019 marqués livré, à valider
 - **Hash dépendances** : package-lock.json présent
 - **Hash CDC.md** : 4c20839b4819a84856ef3602165314edf1b0024de78fab05d3a016427a78d477
-- **Dossiers top-level** : .claude/, app/, lib/, prisma/, public/
-- **Date de la vérification** : 2026-05-09T14:00Z
+- **Dossiers top-level** : .claude/, app/, components/, lib/, prisma/, public/
+- **Date de la vérification** : 2026-05-09T17:20Z
 
 ---
 
 ## CONTEXTE ACTUEL
 
-- **Où on en est** : M1 complet + F-010 à F-017 livrés. M2 et M3 quasi complets. App déployée sur Vercel.
-- **Dernière fonctionnalité travaillée** : F-017 — Communication interne (fil d'annonces, 6 modes de ciblage)
+- **Où on en est** : **BACKLOG CDC COMPLET** — les 19 features F-001→F-019 sont livrées (à valider). App déployée sur Vercel.
+- **Dernière fonctionnalité travaillée** : F-019 — PWA finalisation (manifest, SW, offline, notifications)
 - **Statut de cette feature** : livré, à valider en production
-- **Prochaine fonctionnalité prévue** : F-018 — Mon Profil (plan présenté, feu vert non encore reçu)
+- **Prochaine fonctionnalité prévue** : aucune — phase de validation utilisateur en cours
 - **Problèmes ouverts** :
   - Mot de passe admin à mettre à jour dans Neon (SQL ci-dessous)
   - Clé Resend non configurée (reset mdp par email + emails annonces silencieux)
-  - SQL Neon F-017 à exécuter (voir ci-dessous)
-  - SQL Neon F-016 (TxCategory + Transaction) — statut incertain, à vérifier en début de session
-- **Blocages** : aucun
+  - SQL Neon F-016 (TxCategory + Transaction) — à vérifier si exécuté
+  - SQL Neon F-017 (Announcement + AnnouncementPost + AnnouncementRecipient) — **bloquant pour les annonces** — à exécuter impérativement
+- **Blocages** : SQL Neon F-017 non exécuté → GET /api/annonces retourne 500 en production
 
 ### SQL en attente dans Neon
 
@@ -179,6 +179,8 @@ CREATE TABLE IF NOT EXISTS "AnnouncementRecipient" (
 | 2026-05-09 | F-015 — Gestion des événements | §5.6 | livré, à valider | master |
 | 2026-05-09 | F-016 — Trésorerie (catégories configurables) | §5.7 | livré, à valider | master |
 | 2026-05-09 | F-017 — Communication interne | §5.8 | livré, à valider | master / de7a8c9 |
+| 2026-05-09 | F-018 — Mon Profil | §5.9 | livré, à valider | master |
+| 2026-05-09 | F-019 — PWA finalisation | §7, §8 | livré, à valider | master / 6c1d53d |
 
 > Statuts possibles : `en cours` | `livré` | `livré, à valider` | `pause` | `abandonné`
 
@@ -215,6 +217,8 @@ CREATE TABLE IF NOT EXISTS "AnnouncementRecipient" (
 | 2026-05-09 | POST = join table AnnouncementPost (multi) | Remplace FK unique targetPostId — plusieurs postes simultanés | Non |
 | 2026-05-09 | SELECT = join table AnnouncementRecipient | Sélection manuelle de membres dans le formulaire d'annonce | Non |
 | 2026-05-09 | Auth: try/catch autour du check isActive | Neon entre en veille → DB temporairement inaccessible → JWT seul fait foi | Non |
+| 2026-05-09 | Notifications in-app : polling 60s (pas SSE/push) | CDC ne précise pas le mécanisme — polling suffisant pour < 50 users, zéro infra | Non |
+| 2026-05-09 | SW : pas de next-pwa (librairie) — service worker manuel | Contrôle total de la stratégie de cache, pas de dépendance supplémentaire | Non |
 
 ---
 
@@ -234,6 +238,8 @@ CREATE TABLE IF NOT EXISTS "AnnouncementRecipient" (
 | 2026-05-09 | Neon SQL 42710/42P07 (relation/enum déjà existante) | SQL ré-exécuté sur un état partiel | Blocs SQL avec IF NOT EXISTS / DO $$ EXCEPTION WHEN duplicate_object |
 | 2026-05-09 | Déconnexion session quand Neon est en veille | getSession() levait une exception sur le check isActive DB | try/catch dans auth.ts — si DB indispo, JWT seul est vérifié |
 | 2026-05-09 | CATEGORY_LABELS ref laissée dans export après suppression | Export trésorerie crashait à la compilation | Remplacé par la string category.name depuis la relation |
+| 2026-05-09 | GET /api/annonces → 500 en prod | Tables AnnouncementPost + AnnouncementRecipient absentes de Neon (SQL F-017 non exécuté) | SQL fourni dans CONTEXTE ACTUEL — à exécuter manuellement dans Neon |
+| 2026-05-09 | Prisma OR avec {} vide → validation error | OR: [{}] déclenche une erreur Prisma dans certaines versions | Chemin ADMIN séparé sans OR, puis spread conditionnel pour non-admin |
 
 ---
 
@@ -241,9 +247,9 @@ CREATE TABLE IF NOT EXISTS "AnnouncementRecipient" (
 
 | Priorité | Problème | Impact | Effort |
 |----------|----------|--------|--------|
+| **Critique** | SQL Neon F-017 non exécuté (Announcement + AnnouncementPost + AnnouncementRecipient) | GET /api/annonces → 500 en prod, communication interne bloquée | Exécuter SQL fourni dans CONTEXTE ACTUEL |
+| Basse | SQL Neon F-016 non confirmé (TxCategory + Transaction) | Trésorerie peut ne pas fonctionner en prod | Vérifier et exécuter si nécessaire |
 | Basse | Clé Resend non configurée | Reset mdp par email + emails annonces silencieux | S — configurer EMAIL_API_KEY dans Vercel |
-| Basse | SQL Neon F-016 non confirmé (TxCategory + Transaction) | Trésorerie peut ne pas fonctionner en prod | Vérifier en début de prochaine session |
-| Basse | SQL Neon F-017 non exécuté (Announcement + joins) | Communication interne non fonctionnelle en prod | Exécuter SQL fourni dans CONTEXTE ACTUEL |
 
 ---
 
@@ -261,12 +267,31 @@ CREATE TABLE IF NOT EXISTS "AnnouncementRecipient" (
 - `AnnouncementTarget` a 6 valeurs : ALL, CATEGORY, POST, BUREAU, HORS_BUREAU, SELECT
 - POST = join `AnnouncementPost` (plusieurs postes), SELECT = join `AnnouncementRecipient` (membres)
 - Cherry-pick worktree → master pour déployer : les branches ont divergé, merge direct interdit
+- `NotificationBell` est un Client Component dans `components/` — polling 60s, badge rouge, mark-as-read à l'ouverture
+- Service worker `public/sw.js` : ne jamais mettre en cache /api/auth, /api/cotisations, /api/tresorerie, /api/admin, /api/me/password
+- `components/` dossier top-level créé en session 5 (LocaleSwitcher y a été déplacé aussi)
 
 ---
 
 ## NOTES DE SESSION
 
 > Une note par session de travail. Plus récente en haut.
+
+### 2026-05-09 (session 5) — F-018, F-019 livrés — backlog CDC complet
+
+F-018 : page profil `/app/profil`. 4 sections : identité (nom, email, catégorie, poste/mandat),
+cotisation (carte annuelle + mensualités), présence (20 dernières réunions), paramètres
+(switch langue + changement mdp). API GET /api/me + PATCH /api/me/password. 7 tests.
+Fix annonces : bug silence sur erreur → ajout état fetchError dans CommunicationClient.
+Bug root cause : tables Announcement* absentes de Neon (SQL F-017 jamais exécuté) → 500.
+Fix Prisma OR vide : chemin ADMIN séparé sans filtre OR + spread conditionnel non-admin.
+Renommage "Communication" → "Annonces" dans sidebar + titre page.
+F-019 : manifest PWA, icônes SVG, service worker (cache-first static, network-first API,
+fallback offline.html), headers next.config.ts, méta-tags root layout, SW registration.
+API GET/PATCH /api/notifications + NotificationBell (badge, dropdown, poll 60s, mark-as-read).
+NotificationBell intégrée dans topbar de app/(app)/layout.tsx. 6 nouveaux tests.
+Suite finale : 259/259 passants. Tous les commits poussés sur master.
+**Le backlog CDC v1.1 est complet — 19/19 features livrées, à valider.**
 
 ### 2026-05-09 (session 4) — F-016, F-017 livrés + ciblage avancé annonces
 

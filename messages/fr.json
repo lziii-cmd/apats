@@ -144,7 +144,7 @@
       "reunions": "Réunions",
       "evenements": "Événements",
       "tresorerie": "Trésorerie",
-      "communication": "Communication",
+      "communication": "Annonces",
       "profil": "Mon Profil"
     },
     "dashboard": {
@@ -364,7 +364,7 @@
       "sep": "Sep", "oct": "Oct", "nov": "Nov", "dec": "Déc"
     },
     "communication": {
-      "title": "Communication",
+      "title": "Annonces",
       "newAnnouncement": "Nouvelle annonce",
       "announcementTitle": "Titre",
       "announcementContent": "Contenu",

@@ -32,7 +32,6 @@ export default function NotificationBell() {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // Fermer si clic en dehors
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -62,37 +61,154 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={ref}>
+    <div style={{ position: "relative" }} ref={ref}>
+      {/* Bell button */}
       <button
         onClick={handleOpen}
-        className="relative p-1.5 rounded hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
-        title="Notifications"
+        style={{
+          position: "relative",
+          width: "32px",
+          height: "32px",
+          borderRadius: "var(--border-radius-md)",
+          border: "0.5px solid var(--color-border-tertiary)",
+          background: open ? "var(--color-background-secondary)" : "var(--color-background-primary)",
+          color: "var(--color-text-secondary)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          transition: "background 0.15s",
+        }}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} non lues)` : ""}`}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
+        <i className="ti ti-bell" style={{ fontSize: "15px" }} />
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
+          <span
+            style={{
+              position: "absolute",
+              top: "3px",
+              right: "3px",
+              width: "7px",
+              height: "7px",
+              borderRadius: "50%",
+              background: "#D85A30",
+              border: "1.5px solid var(--color-background-primary)",
+            }}
+          />
         )}
       </button>
 
+      {/* Dropdown — right-aligned to prevent overflow */}
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "calc(100% + 8px)",
+            width: "320px",
+            background: "var(--color-background-primary)",
+            border: "0.5px solid var(--color-border-tertiary)",
+            borderRadius: "var(--border-radius-lg)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.10)",
+            zIndex: 100,
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 16px",
+              borderBottom: "0.5px solid var(--color-border-tertiary)",
+            }}
+          >
+            <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--color-text-primary)" }}>
+              Notifications
+            </span>
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  fontSize: "10px",
+                  padding: "1px 7px",
+                  borderRadius: "999px",
+                  background: "#FCEBEB",
+                  color: "#791F1F",
+                  fontWeight: 500,
+                }}
+              >
+                {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
+              </span>
+            )}
           </div>
-          <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+
+          {/* List */}
+          <div style={{ maxHeight: "320px", overflowY: "auto" }}>
             {notifications.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">Aucune notification</p>
+              <div
+                style={{
+                  padding: "32px 16px",
+                  textAlign: "center",
+                  color: "var(--color-text-tertiary)",
+                  fontSize: "12px",
+                }}
+              >
+                <i className="ti ti-bell-off" style={{ fontSize: "22px", display: "block", marginBottom: "6px", opacity: 0.5 }} />
+                Aucune notification
+              </div>
             ) : (
-              notifications.map((n) => (
-                <div key={n.id} className={`px-4 py-3 ${n.isRead ? "bg-white" : "bg-blue-50"}`}>
-                  <p className="text-sm font-medium text-gray-800 leading-tight">{n.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
-                  <p className="text-xs text-gray-400 mt-1">{formatDate(n.createdAt)}</p>
+              notifications.map((n, i) => (
+                <div
+                  key={n.id}
+                  style={{
+                    padding: "11px 16px",
+                    borderTop: i > 0 ? "0.5px solid var(--color-border-tertiary)" : undefined,
+                    background: n.isRead ? "transparent" : "rgba(29,158,117,0.04)",
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                    <div
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: n.isRead ? "transparent" : "#1D9E75",
+                        flexShrink: 0,
+                        marginTop: "5px",
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: n.isRead ? 400 : 500,
+                          color: "var(--color-text-primary)",
+                          lineHeight: 1.35,
+                          marginBottom: "2px",
+                        }}
+                      >
+                        {n.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "var(--color-text-secondary)",
+                          lineHeight: 1.4,
+                          marginBottom: "4px",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {n.body}
+                      </div>
+                      <div style={{ fontSize: "10px", color: "var(--color-text-tertiary)" }}>
+                        {formatDate(n.createdAt)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))
             )}

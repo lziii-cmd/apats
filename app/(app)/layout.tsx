@@ -5,6 +5,7 @@ import { getUserFeatures } from "@/lib/permissions";
 import { db } from "@/lib/db";
 import SidebarNav from "@/components/SidebarNav";
 import NotificationBell from "@/components/NotificationBell";
+import TopbarTitle from "@/components/TopbarTitle";
 import Toast from "@/components/Toast";
 
 function getInitials(name: string): string {
@@ -58,11 +59,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             borderBottom: "0.5px solid var(--color-border-tertiary)",
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             padding: "0 24px",
             flexShrink: 0,
           }}
         >
+          <TopbarTitle />
           <NotificationBell />
         </header>
 

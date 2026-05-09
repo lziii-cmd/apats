@@ -235,7 +235,14 @@ export default function MembresAppClient({
           {t("noMembers")}
         </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", tableLayout: "fixed" }}>
+          <colgroup>
+            <col style={{ width: "38%" }} />
+            <col style={{ width: "15%" }} />
+            <col style={{ width: "26%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "8%" }} />
+          </colgroup>
           <thead>
             <tr style={{ background: "var(--color-background-secondary)" }}>
               {[t("name"), t("category"), t("post"), "Cotisation", ""].map((h, i) => (

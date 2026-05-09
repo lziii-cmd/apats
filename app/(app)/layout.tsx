@@ -56,6 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userRole={userRole}
           userInitials={userInitials}
           navItems={navItems}
+          isAdmin={isAdmin}
         />
       </div>
 

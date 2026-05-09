@@ -95,10 +95,10 @@ export default function ReunionsClient({ meetings, canCreate }: Props) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className={`text-xs px-2 py-0.5 rounded font-medium ${TYPE_COLORS[m.type]}`}>
-                        {t(`type${m.type.charAt(0) + m.type.slice(1).toLowerCase()}` as never)}
+                        {t({ BUREAU: "typeBureau", AG: "typeAG", EXTRAORDINARY: "typeExtraordinary" }[m.type] as never)}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded ${STATUS_COLORS[m.status]}`}>
-                        {t(`status${m.status.charAt(0) + m.status.slice(1).toLowerCase()}` as never)}
+                        {t({ PLANNED: "statusPlanned", OPEN: "statusOpen", CLOSED: "statusClosed" }[m.status] as never)}
                       </span>
                       {isConfirmed && (
                         <span className="text-xs px-2 py-0.5 rounded bg-teal-100 text-teal-700">

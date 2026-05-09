@@ -70,6 +70,9 @@ enum AnnouncementTarget {
   ALL
   CATEGORY
   POST
+  BUREAU
+  HORS_BUREAU
+  SELECT
 }
 
 enum Feature {
@@ -128,8 +131,9 @@ model User {
   meetingAttendances   MeetingAttendee[]
   eventsCreated        Event[]
   eventParticipations  EventParticipant[]
-  transactions         Transaction[]
-  announcements        Announcement[]
+  transactions              Transaction[]
+  announcements             Announcement[]
+  announcementRecipients    AnnouncementRecipient[]
   passwordResetToken   String?           @unique
   passwordResetExpiry  DateTime?
   isActive             Boolean           @default(true)
@@ -138,13 +142,13 @@ model User {
 }
 
 model Post {
-  id            String         @id @default(cuid())
-  name          String         @unique // ex: "Président", "Trésorier", "Secrétaire"
-  permissions   Permission[]
-  mandates      Mandate[]
-  announcements Announcement[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                String             @id @default(cuid())
+  name              String             @unique // ex: "Président", "Trésorier", "Secrétaire"
+  permissions       Permission[]
+  mandates          Mandate[]
+  announcementPosts AnnouncementPost[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model Permission {
@@ -307,20 +311,38 @@ model EventParticipant {
 }
 
 model Announcement {
-  id               String             @id @default(cuid())
+  id               String                  @id @default(cuid())
   title            String
   content          String
-  targetType       AnnouncementTarget @default(ALL)
+  targetType       AnnouncementTarget      @default(ALL)
   targetCategoryId String?
-  targetCategory   MemberCategory?    @relation(fields: [targetCategoryId], references: [id], onDelete: SetNull)
-  targetPostId     String?
-  targetPost       Post?              @relation(fields: [targetPostId], references: [id], onDelete: SetNull)
+  targetCategory   MemberCategory?         @relation(fields: [targetCategoryId], references: [id], onDelete: SetNull)
+  targetPosts      AnnouncementPost[]
+  targetRecipients AnnouncementRecipient[]
   createdById      String
-  createdBy        User               @relation(fields: [createdById], references: [id], onDelete: Restrict)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdBy        User                    @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 
   @@index([createdAt])
+}
+
+model AnnouncementPost {
+  announcementId String
+  postId         String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  post           Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([announcementId, postId])
+}
+
+model AnnouncementRecipient {
+  announcementId String
+  userId         String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([announcementId, userId])
 }
 
 model TxCategory {

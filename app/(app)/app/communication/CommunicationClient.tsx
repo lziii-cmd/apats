@@ -7,9 +7,10 @@ type Announcement = {
   id: string;
   title: string;
   content: string;
-  targetType: "ALL" | "CATEGORY" | "POST";
+  targetType: "ALL" | "CATEGORY" | "POST" | "BUREAU" | "HORS_BUREAU" | "SELECT";
   targetCategory: { name: string } | null;
-  targetPost: { name: string } | null;
+  targetPosts: { post: { name: string } }[];
+  _count: { targetRecipients: number };
   createdBy: { name: string };
   createdById: string;
   createdAt: string;
@@ -17,6 +18,7 @@ type Announcement = {
 
 type Category = { id: string; name: string };
 type Post = { id: string; name: string };
+type Member = { id: string; name: string };
 
 type Props = {
   canCreate: boolean;
@@ -24,9 +26,12 @@ type Props = {
   currentUserId: string;
   categories: Category[];
   posts: Post[];
+  members: Member[];
 };
 
-export default function CommunicationClient({ canCreate, isAdmin, currentUserId, categories, posts }: Props) {
+export default function CommunicationClient({
+  canCreate, isAdmin, currentUserId, categories, posts, members,
+}: Props) {
   const t = useTranslations("app.communication");
   const tc = useTranslations("common");
 
@@ -41,7 +46,8 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
     content: "",
     targetType: "ALL",
     targetCategoryId: "",
-    targetPostId: "",
+    targetPostIds: [] as string[],
+    targetUserIds: [] as string[],
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
@@ -58,6 +64,11 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
 
   useEffect(() => { fetchAnnouncements(); }, [fetchAnnouncements]);
 
+  function resetForm() {
+    setForm({ title: "", content: "", targetType: "ALL", targetCategoryId: "", targetPostIds: [], targetUserIds: [] });
+    setFormError("");
+  }
+
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString("fr-FR", {
       day: "numeric", month: "long", year: "numeric",
@@ -66,16 +77,49 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
   }
 
   function targetBadge(a: Announcement) {
-    if (a.targetType === "ALL") return t("targetBadgeAll");
-    if (a.targetType === "CATEGORY" && a.targetCategory)
-      return t("targetBadgeCategory", { name: a.targetCategory.name });
-    if (a.targetType === "POST" && a.targetPost)
-      return t("targetBadgePost", { name: a.targetPost.name });
-    return "";
+    switch (a.targetType) {
+      case "ALL": return t("targetBadgeAll");
+      case "CATEGORY": return a.targetCategory ? t("targetBadgeCategory", { name: a.targetCategory.name }) : "";
+      case "POST": {
+        const names = a.targetPosts.map((p) => p.post.name);
+        if (names.length === 0) return t("targetBadgePost");
+        const label = names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")}…`;
+        return t("targetBadgePost") + " : " + label;
+      }
+      case "BUREAU": return t("targetBadgeBureau");
+      case "HORS_BUREAU": return t("targetBadgeHorsBureau");
+      case "SELECT": return t("targetBadgeSelect", { count: a._count.targetRecipients });
+    }
+  }
+
+  function togglePostId(id: string) {
+    setForm((f) => ({
+      ...f,
+      targetPostIds: f.targetPostIds.includes(id)
+        ? f.targetPostIds.filter((x) => x !== id)
+        : [...f.targetPostIds, id],
+    }));
+  }
+
+  function toggleUserId(id: string) {
+    setForm((f) => ({
+      ...f,
+      targetUserIds: f.targetUserIds.includes(id)
+        ? f.targetUserIds.filter((x) => x !== id)
+        : [...f.targetUserIds, id],
+    }));
+  }
+
+  function isPublishDisabled() {
+    if (!form.title.trim() || !form.content.trim()) return true;
+    if (form.targetType === "CATEGORY" && !form.targetCategoryId) return true;
+    if (form.targetType === "POST" && form.targetPostIds.length === 0) return true;
+    if (form.targetType === "SELECT" && form.targetUserIds.length === 0) return true;
+    return false;
   }
 
   async function handlePublish() {
-    if (!form.title.trim() || !form.content.trim()) return;
+    if (isPublishDisabled()) return;
     setFormLoading(true);
     setFormError("");
     try {
@@ -87,11 +131,12 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
           content: form.content,
           targetType: form.targetType,
           targetCategoryId: form.targetType === "CATEGORY" ? form.targetCategoryId : undefined,
-          targetPostId: form.targetType === "POST" ? form.targetPostId : undefined,
+          targetPostIds: form.targetType === "POST" ? form.targetPostIds : undefined,
+          targetUserIds: form.targetType === "SELECT" ? form.targetUserIds : undefined,
         }),
       });
       if (res.ok) {
-        setForm({ title: "", content: "", targetType: "ALL", targetCategoryId: "", targetPostId: "" });
+        resetForm();
         setShowForm(false);
         fetchAnnouncements();
       } else {
@@ -163,7 +208,7 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
       {/* Modal création */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-base font-semibold mb-4">{t("newAnnouncement")}</h2>
             <div className="space-y-3">
               <div>
@@ -171,7 +216,7 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
                 <input type="text" value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  placeholder="Titre de l'annonce" />
+                  placeholder={t("announcementTitle")} />
               </div>
               <div>
                 <label className="block text-xs text-gray-600 mb-1">{t("announcementContent")}</label>
@@ -179,16 +224,25 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
                   rows={5}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none"
-                  placeholder="Contenu de l'annonce…" />
+                  placeholder={t("contentPlaceholder")} />
               </div>
               <div>
                 <label className="block text-xs text-gray-600 mb-1">{t("targetType")}</label>
                 <select value={form.targetType}
-                  onChange={(e) => setForm({ ...form, targetType: e.target.value, targetCategoryId: "", targetPostId: "" })}
+                  onChange={(e) => setForm({
+                    ...form,
+                    targetType: e.target.value,
+                    targetCategoryId: "",
+                    targetPostIds: [],
+                    targetUserIds: [],
+                  })}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                   <option value="ALL">{t("targetAll")}</option>
+                  <option value="BUREAU">{t("targetBureau")}</option>
+                  <option value="HORS_BUREAU">{t("targetHorsBureau")}</option>
                   <option value="CATEGORY">{t("targetCategory")}</option>
                   <option value="POST">{t("targetPost")}</option>
+                  <option value="SELECT">{t("targetSelect")}</option>
                 </select>
               </div>
 
@@ -198,7 +252,7 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
                   <select value={form.targetCategoryId}
                     onChange={(e) => setForm({ ...form, targetCategoryId: e.target.value })}
                     className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    <option value="">— Choisir —</option>
+                    <option value="">— {t("choose")} —</option>
                     {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
@@ -206,27 +260,63 @@ export default function CommunicationClient({ canCreate, isAdmin, currentUserId,
 
               {form.targetType === "POST" && (
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">{t("targetPostLabel")}</label>
-                  <select value={form.targetPostId}
-                    onChange={(e) => setForm({ ...form, targetPostId: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    <option value="">— Choisir —</option>
-                    {posts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+                  <label className="block text-xs text-gray-600 mb-2">{t("targetPostLabel")}</label>
+                  <div className="border border-gray-200 rounded p-2 space-y-1 max-h-44 overflow-y-auto">
+                    {posts.map((p) => (
+                      <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
+                        <input type="checkbox"
+                          checked={form.targetPostIds.includes(p.id)}
+                          onChange={() => togglePostId(p.id)}
+                          className="accent-teal-600" />
+                        {p.name}
+                      </label>
+                    ))}
+                    {posts.length === 0 && (
+                      <p className="text-xs text-gray-400 px-2 py-1">{t("noPosts")}</p>
+                    )}
+                  </div>
+                  {form.targetPostIds.length > 0 && (
+                    <p className="text-xs text-teal-700 mt-1">
+                      {form.targetPostIds.length} {t("selectedPosts")}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {form.targetType === "SELECT" && (
+                <div>
+                  <label className="block text-xs text-gray-600 mb-2">{t("targetSelectLabel")}</label>
+                  <div className="border border-gray-200 rounded p-2 space-y-1 max-h-48 overflow-y-auto">
+                    {members.map((m) => (
+                      <label key={m.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-50 px-2 py-1 rounded">
+                        <input type="checkbox"
+                          checked={form.targetUserIds.includes(m.id)}
+                          onChange={() => toggleUserId(m.id)}
+                          className="accent-teal-600" />
+                        {m.name}
+                      </label>
+                    ))}
+                    {members.length === 0 && (
+                      <p className="text-xs text-gray-400 px-2 py-1">{t("noMembers")}</p>
+                    )}
+                  </div>
+                  {form.targetUserIds.length > 0 && (
+                    <p className="text-xs text-teal-700 mt-1">
+                      {form.targetUserIds.length} {t("selectedMembers")}
+                    </p>
+                  )}
                 </div>
               )}
 
               {formError && <p className="text-xs text-red-600">{formError}</p>}
             </div>
             <div className="flex gap-2 mt-5">
-              <button onClick={() => { setShowForm(false); setFormError(""); }}
+              <button onClick={() => { setShowForm(false); resetForm(); }}
                 className="flex-1 border border-gray-300 text-gray-700 py-2 rounded text-sm hover:bg-gray-50">
                 {tc("cancel")}
               </button>
               <button onClick={handlePublish}
-                disabled={formLoading || !form.title.trim() || !form.content.trim() ||
-                  (form.targetType === "CATEGORY" && !form.targetCategoryId) ||
-                  (form.targetType === "POST" && !form.targetPostId)}
+                disabled={formLoading || isPublishDisabled()}
                 className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded text-sm disabled:opacity-60">
                 {formLoading ? "…" : t("publish")}
               </button>

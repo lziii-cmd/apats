@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
+import "@tabler/icons-webfont/dist/tabler-icons.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,10 +46,6 @@ export default async function RootLayout({
       <head>
         <meta name="theme-color" content="#14171c" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
-        />
       </head>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>

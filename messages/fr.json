@@ -363,6 +363,25 @@
       "may": "Mai", "jun": "Jun", "jul": "Jul", "aug": "Août",
       "sep": "Sep", "oct": "Oct", "nov": "Nov", "dec": "Déc"
     },
+    "communication": {
+      "title": "Communication",
+      "newAnnouncement": "Nouvelle annonce",
+      "announcementTitle": "Titre",
+      "announcementContent": "Contenu",
+      "targetType": "Destinataires",
+      "targetAll": "Tous les membres",
+      "targetCategory": "Une catégorie",
+      "targetPost": "Un poste",
+      "targetCategoryLabel": "Catégorie",
+      "targetPostLabel": "Poste",
+      "publish": "Publier",
+      "noAnnouncements": "Aucune annonce.",
+      "by": "Par",
+      "deleteConfirm": "Supprimer cette annonce ?",
+      "targetBadgeAll": "Tous",
+      "targetBadgeCategory": "Catégorie : {name}",
+      "targetBadgePost": "Poste : {name}"
+    },
     "tresorerie": {
       "title": "Trésorerie",
       "balance": "Solde",

@@ -66,6 +66,12 @@ enum TxCatType {
   BOTH
 }
 
+enum AnnouncementTarget {
+  ALL
+  CATEGORY
+  POST
+}
+
 enum Feature {
   // Membres
   MEMBERS_VIEW
@@ -96,12 +102,13 @@ enum Feature {
 // ---------------------------------------------------------------------------
 
 model MemberCategory {
-  id         String   @id @default(cuid())
-  name       String   @unique // ex: "CDI", "CDD", "Vacation"
-  monthlyFee Int               // montant mensuel en FCFA
-  users      User[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String         @id @default(cuid())
+  name          String         @unique // ex: "CDI", "CDD", "Vacation"
+  monthlyFee    Int                     // montant mensuel en FCFA
+  users         User[]
+  announcements Announcement[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model User {
@@ -122,6 +129,7 @@ model User {
   eventsCreated        Event[]
   eventParticipations  EventParticipant[]
   transactions         Transaction[]
+  announcements        Announcement[]
   passwordResetToken   String?           @unique
   passwordResetExpiry  DateTime?
   isActive             Boolean           @default(true)
@@ -130,12 +138,13 @@ model User {
 }
 
 model Post {
-  id          String       @id @default(cuid())
-  name        String       @unique // ex: "Président", "Trésorier", "Secrétaire"
-  permissions Permission[]
-  mandates    Mandate[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String         @id @default(cuid())
+  name          String         @unique // ex: "Président", "Trésorier", "Secrétaire"
+  permissions   Permission[]
+  mandates      Mandate[]
+  announcements Announcement[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Permission {
@@ -295,6 +304,23 @@ model EventParticipant {
   @@unique([eventId, userId])
   @@index([eventId])
   @@index([userId])
+}
+
+model Announcement {
+  id               String             @id @default(cuid())
+  title            String
+  content          String
+  targetType       AnnouncementTarget @default(ALL)
+  targetCategoryId String?
+  targetCategory   MemberCategory?    @relation(fields: [targetCategoryId], references: [id], onDelete: SetNull)
+  targetPostId     String?
+  targetPost       Post?              @relation(fields: [targetPostId], references: [id], onDelete: SetNull)
+  createdById      String
+  createdBy        User               @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([createdAt])
 }
 
 model TxCategory {

@@ -363,6 +363,25 @@
       "may": "May", "jun": "Jun", "jul": "Jul", "aug": "Aug",
       "sep": "Sep", "oct": "Oct", "nov": "Nov", "dec": "Dec"
     },
+    "communication": {
+      "title": "Communication",
+      "newAnnouncement": "New announcement",
+      "announcementTitle": "Title",
+      "announcementContent": "Content",
+      "targetType": "Recipients",
+      "targetAll": "All members",
+      "targetCategory": "A category",
+      "targetPost": "A role",
+      "targetCategoryLabel": "Category",
+      "targetPostLabel": "Role",
+      "publish": "Publish",
+      "noAnnouncements": "No announcements.",
+      "by": "By",
+      "deleteConfirm": "Delete this announcement?",
+      "targetBadgeAll": "All",
+      "targetBadgeCategory": "Category: {name}",
+      "targetBadgePost": "Role: {name}"
+    },
     "tresorerie": {
       "title": "Treasury",
       "balance": "Balance",

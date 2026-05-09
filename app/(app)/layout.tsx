@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Link>
         )}
 
-        <Link href="/app/communication" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors opacity-40 cursor-not-allowed pointer-events-none">
+        <Link href="/app/communication" className="rounded px-3 py-2 text-sm hover:bg-gray-700 transition-colors">
           {t("communication")}
         </Link>
 

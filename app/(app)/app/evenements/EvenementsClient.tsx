@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { showToast } from "@/components/Toast";
 
 type Event = {
   id: string;
@@ -53,6 +54,7 @@ export default function EvenementsClient({ events, canCreate }: Props) {
     setLoadingId(event.id);
     try {
       await fetch(`/api/evenements/${event.id}/participer`, { method: isIn ? "DELETE" : "POST" });
+      showToast(isIn ? "Inscription annulée." : "Inscription confirmée.");
       router.refresh();
     } finally {
       setLoadingId(null);

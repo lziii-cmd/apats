@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { showToast } from "@/components/Toast";
 
 type PaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED";
 type PaymentMode = "CASH" | "WAVE" | "ORANGE_MONEY";
@@ -185,6 +186,7 @@ export default function CotisationsClient({
     } else {
       setShowDeclareForm(false);
       setDeclareRef("");
+      showToast("Paiement déclaré. En attente de confirmation.");
       await fetchSummary();
     }
     setDeclaring(false);
@@ -197,6 +199,7 @@ export default function CotisationsClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "confirm" }),
     });
+    showToast("Paiement confirmé.");
     await Promise.all([fetchDashboard(), fetchSummary()]);
   }
 
@@ -210,6 +213,7 @@ export default function CotisationsClient({
     });
     setRejectingId(null);
     setRejectReason("");
+    showToast("Paiement rejeté.", "info");
     await Promise.all([fetchDashboard(), fetchSummary()]);
   }
 
@@ -452,7 +456,7 @@ export default function CotisationsClient({
             </div>
 
             {/* 12-month grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "6px", marginBottom: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", marginBottom: "16px" }}>
               {Array.from({ length: 12 }, (_, i) => {
                 const month = i + 1;
                 const year = new Date().getFullYear();
@@ -580,6 +584,12 @@ export default function CotisationsClient({
                   placeholder={t("paymentRefHint")}
                   style={INPUT}
                 />
+                {(declareMode === "WAVE" || declareMode === "ORANGE_MONEY") && (
+                  <p style={{ fontSize: "10.5px", color: "var(--color-text-tertiary)", margin: "4px 0 0" }}>
+                    <i className="ti ti-info-circle" style={{ fontSize: "11px", verticalAlign: "-1px", marginRight: "3px" }} />
+                    Numéro visible dans l'historique {declareMode === "WAVE" ? "Wave" : "Orange Money"}
+                  </p>
+                )}
               </div>
 
               {declareError && (

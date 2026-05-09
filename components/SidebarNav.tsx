@@ -116,6 +116,7 @@ export default function SidebarNav({ userName, userRole, userInitials, navItems 
             <Link
               key={item.href}
               href={item.href}
+              className={active ? undefined : "sidebar-link"}
               style={{
                 display: "flex",
                 alignItems: "center",

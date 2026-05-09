@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import { showToast } from "@/components/Toast";
 
 type PaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED";
 type AttendanceStatus = "EXCUSED" | null;
@@ -179,6 +181,7 @@ export default function ProfilClient() {
 
     if (res.ok) {
       setPwdSuccess(t("passwordSuccess"));
+      showToast("Mot de passe mis à jour.");
       setCurrentPwd("");
       setNewPwd("");
       setConfirmPwd("");
@@ -329,7 +332,20 @@ export default function ProfilClient() {
           </div>
 
           {/* Mensualités */}
-          <div style={LABEL_SM}>{t("monthlyPayments")}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div style={LABEL_SM}>{t("monthlyPayments")}</div>
+            <Link
+              href="/app/cotisations"
+              style={{
+                fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)",
+                background: "#14171c", color: "white", textDecoration: "none",
+                display: "flex", alignItems: "center", gap: "5px",
+              }}
+            >
+              <i className="ti ti-plus" style={{ fontSize: "11px" }} />
+              Déclarer un paiement
+            </Link>
+          </div>
           {monthlyPayments.length === 0 ? (
             <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", margin: 0 }}>{t("noPayments")}</p>
           ) : (

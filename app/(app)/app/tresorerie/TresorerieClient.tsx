@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { showToast } from "@/components/Toast";
 
 type TxCategory = { id: string; name: string; type: "INCOME" | "EXPENSE" | "BOTH"; isSystem: boolean };
 
@@ -90,7 +91,7 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
     setAddLoading(true);
     try {
       const res = await fetch("/api/tresorerie/transactions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: addForm.date, type: addForm.type, categoryId: addForm.categoryId, description: addForm.description, amount: parseInt(addForm.amount) }) });
-      if (res.ok) { setShowAdd(false); setAddForm({ date: new Date().toISOString().slice(0, 10), type: "EXPENSE", categoryId: "", description: "", amount: "" }); fetchData(); }
+      if (res.ok) { setShowAdd(false); setAddForm({ date: new Date().toISOString().slice(0, 10), type: "EXPENSE", categoryId: "", description: "", amount: "" }); showToast("Transaction ajoutée."); fetchData(); }
     } finally { setAddLoading(false); }
   }
 
@@ -113,7 +114,7 @@ export default function TresorerieClient({ canManage, canExport }: Props) {
 
   async function handleDelete(id: string) {
     setDeleteLoading(true);
-    try { await fetch(`/api/tresorerie/transactions/${id}`, { method: "DELETE" }); setDeleteId(null); fetchData(); }
+    try { await fetch(`/api/tresorerie/transactions/${id}`, { method: "DELETE" }); setDeleteId(null); showToast("Transaction supprimée.", "info"); fetchData(); }
     finally { setDeleteLoading(false); }
   }
 

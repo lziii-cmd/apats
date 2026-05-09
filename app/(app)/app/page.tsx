@@ -133,7 +133,7 @@ export default async function DashboardPage() {
     db.meeting.findFirst({
       where: { status: { in: ["PLANNED", "OPEN"] }, date: { gte: new Date() } },
       orderBy: { date: "asc" },
-      select: { date: true, _count: { select: { attendees: true } } },
+      select: { id: true, date: true, _count: { select: { attendees: true } } },
     }).catch(() => null),
     db.announcement.findFirst({
       orderBy: { createdAt: "desc" },
@@ -186,6 +186,11 @@ export default async function DashboardPage() {
   const nextMeetingDate = nextMeeting?.date
     ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(nextMeeting.date)
     : null;
+
+  // Réunion aujourd'hui ?
+  const isMeetingToday = nextMeeting?.date
+    ? new Date(nextMeeting.date).toDateString() === new Date().toDateString()
+    : false;
 
   // User first name
   const firstName = session.email.split(".")[0];
@@ -326,6 +331,48 @@ export default async function DashboardPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Contextual banners */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "14px" }}>
+        {isMeetingToday && nextMeeting && (
+          <a
+            href={`/app/reunions/${nextMeeting.id}`}
+            style={{
+              display: "flex", alignItems: "center", gap: "12px",
+              padding: "12px 14px",
+              background: "#E1F5EE",
+              borderRadius: "var(--border-radius-md)",
+              textDecoration: "none",
+            }}
+          >
+            <i className="ti ti-qrcode" style={{ color: "#085041", fontSize: "17px", flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "12px", color: "#085041", fontWeight: 500 }}>Réunion aujourd'hui</div>
+              <div style={{ fontSize: "11px", color: "#0F6E56" }}>Scanner ma présence →</div>
+            </div>
+          </a>
+        )}
+        {overdueCount != null && overdueCount > 0 && (
+          <a
+            href="/app/cotisations"
+            style={{
+              display: "flex", alignItems: "center", gap: "12px",
+              padding: "12px 14px",
+              background: "#FBEAEA",
+              borderRadius: "var(--border-radius-md)",
+              textDecoration: "none",
+            }}
+          >
+            <i className="ti ti-alert-triangle" style={{ color: "#7F1D1D", fontSize: "17px", flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "12px", color: "#7F1D1D", fontWeight: 500 }}>
+                {overdueCount} membre{overdueCount > 1 ? "s" : ""} en retard de cotisation
+              </div>
+              <div style={{ fontSize: "11px", color: "#991B1B" }}>Voir les cotisations →</div>
+            </div>
+          </a>
+        )}
       </div>
 
       {/* Announcement banner */}

@@ -39,3 +39,46 @@ button, input, select, textarea {
 button:not([class]) {
   cursor: pointer;
 }
+
+/* ── Animations ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background: linear-gradient(90deg, #ebebeb 25%, #f5f5f4 50%, #ebebeb 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: var(--border-radius-md);
+}
+
+/* ── Toast entrance ── */
+.toast-item {
+  animation: toastIn 0.2s ease forwards;
+}
+
+/* ── Sidebar nav link hover ── */
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ── Card base ── */
+.card {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Tables responsive ── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

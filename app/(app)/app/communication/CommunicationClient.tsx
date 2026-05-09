@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { showToast } from "@/components/Toast";
 
 type Announcement = {
   id: string;
@@ -189,6 +190,7 @@ export default function CommunicationClient({
       if (res.ok) {
         resetForm();
         setShowForm(false);
+        showToast("Annonce publiée.");
         fetchAnnouncements();
       } else {
         const data = await res.json();
@@ -204,6 +206,7 @@ export default function CommunicationClient({
     try {
       await fetch(`/api/annonces/${id}`, { method: "DELETE" });
       setDeleteId(null);
+      showToast("Annonce supprimée.", "info");
       fetchAnnouncements();
     } finally {
       setDeleteLoading(false);
@@ -245,9 +248,22 @@ export default function CommunicationClient({
           padding: "12px 16px", borderRadius: "var(--border-radius-md)",
           background: "#FEF2F2", border: "0.5px solid #FECACA",
           color: "#991B1B", fontSize: "13px",
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px",
         }}>
-          <i className="ti ti-alert-circle" style={{ fontSize: "14px", verticalAlign: "-2px", marginRight: "6px" }} />
-          {fetchError}
+          <span>
+            <i className="ti ti-alert-circle" style={{ fontSize: "14px", verticalAlign: "-2px", marginRight: "6px" }} />
+            {fetchError}
+          </span>
+          <button
+            onClick={fetchAnnouncements}
+            style={{
+              fontSize: "11px", padding: "4px 12px", borderRadius: "var(--border-radius-md)",
+              background: "white", color: "#991B1B", border: "0.5px solid #FECACA",
+              cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            Réessayer
+          </button>
         </div>
       ) : announcements.length === 0 ? (
         <div style={{ padding: "40px 0", textAlign: "center", color: "var(--color-text-tertiary)", fontSize: "13px" }}>

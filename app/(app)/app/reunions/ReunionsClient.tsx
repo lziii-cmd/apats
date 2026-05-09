@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { showToast } from "@/components/Toast";
 
 type Meeting = {
   id: string;
@@ -50,6 +51,7 @@ export default function ReunionsClient({ meetings, canCreate }: Props) {
     setLoadingId(meeting.id);
     try {
       await fetch(`/api/reunions/${meeting.id}/confirm`, { method: isConfirmed ? "DELETE" : "POST" });
+      showToast(isConfirmed ? "Présence annulée." : "Présence confirmée.");
       router.refresh();
     } finally {
       setLoadingId(null);

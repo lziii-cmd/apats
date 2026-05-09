@@ -5,6 +5,7 @@ import { getUserFeatures } from "@/lib/permissions";
 import { db } from "@/lib/db";
 import SidebarNav from "@/components/SidebarNav";
 import NotificationBell from "@/components/NotificationBell";
+import Toast from "@/components/Toast";
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -69,6 +70,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+      <Toast />
     </div>
   );
 }

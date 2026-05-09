@@ -37,6 +37,7 @@ export default function CommunicationClient({
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -54,9 +55,17 @@ export default function CommunicationClient({
 
   const fetchAnnouncements = useCallback(async () => {
     setLoading(true);
+    setFetchError("");
     try {
       const res = await fetch("/api/annonces");
-      if (res.ok) setAnnouncements(await res.json());
+      if (res.ok) {
+        setAnnouncements(await res.json());
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setFetchError(data.error ?? "Erreur lors du chargement des annonces.");
+      }
+    } catch {
+      setFetchError("Erreur réseau.");
     } finally {
       setLoading(false);
     }
@@ -174,6 +183,8 @@ export default function CommunicationClient({
       {/* Fil d'annonces */}
       {loading ? (
         <p className="text-sm text-gray-500">{tc("loading")}</p>
+      ) : fetchError ? (
+        <p className="text-sm text-red-500">{fetchError}</p>
       ) : announcements.length === 0 ? (
         <p className="text-sm text-gray-500">{t("noAnnouncements")}</p>
       ) : (

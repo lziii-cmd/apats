@@ -20,6 +20,10 @@ export default async function ReunionDetailPage({ params }: Props) {
     session.role === "ADMIN" ||
     (await hasPermission(session.userId, "MEETINGS_ATTENDANCE" as Feature));
 
+  const canUploadPV =
+    session.role === "ADMIN" ||
+    (await hasPermission(session.userId, "MEETINGS_UPLOAD_PV" as Feature));
+
   const { id } = await params;
 
   const meeting = await db.meeting.findUnique({
@@ -35,6 +39,7 @@ export default async function ReunionDetailPage({ params }: Props) {
       agenda: true,
       qrCode: true,
       status: true,
+      pvUrl: true,
       createdBy: { select: { id: true, name: true } },
       attendees: {
         select: {
@@ -65,6 +70,7 @@ export default async function ReunionDetailPage({ params }: Props) {
       myAttendee={myAttendee ?? null}
       canCreate={canCreate}
       canAttend={canAttend}
+      canUploadPV={canUploadPV}
     />
   );
 }

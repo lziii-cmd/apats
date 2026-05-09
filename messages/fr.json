@@ -237,7 +237,21 @@
       "noAttendees": "Aucun convoqué.",
       "detail": "Voir le détail",
       "emargementLink": "Émargement (secrétaire)",
-      "scannerLink": "Scanner le QR Code"
+      "scannerLink": "Scanner le QR Code",
+      "recapTitle": "Récapitulatif de la réunion",
+      "recapTotal": "Convoqués",
+      "recapPresent": "Présents",
+      "recapAbsent": "Absents",
+      "recapRate": "Taux de présence",
+      "recapPresentList": "Présents",
+      "recapAbsentList": "Absents",
+      "recapExcusedList": "Excusés",
+      "pvTitle": "Procès-verbal",
+      "pvNone": "PV non encore disponible",
+      "pvUpload": "Uploader le PV (PDF)",
+      "pvReplace": "Remplacer le PV",
+      "pvDownload": "Télécharger le PV",
+      "pvDelete": "Supprimer"
     },
     "emargement": {
       "title": "Émargement",

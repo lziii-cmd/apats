@@ -225,6 +225,7 @@ model Meeting {
   agenda      String
   qrCode      String            @unique @default(cuid())
   status      MeetingStatus     @default(PLANNED)
+  pvUrl       String?
   createdById String
   createdBy   User              @relation(fields: [createdById], references: [id], onDelete: Restrict)
   attendees   MeetingAttendee[]

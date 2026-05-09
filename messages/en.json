@@ -237,7 +237,21 @@
       "noAttendees": "No invitees.",
       "detail": "View details",
       "emargementLink": "Attendance (secretary)",
-      "scannerLink": "Scan QR Code"
+      "scannerLink": "Scan QR Code",
+      "recapTitle": "Meeting summary",
+      "recapTotal": "Invited",
+      "recapPresent": "Present",
+      "recapAbsent": "Absent",
+      "recapRate": "Attendance rate",
+      "recapPresentList": "Present",
+      "recapAbsentList": "Absent",
+      "recapExcusedList": "Excused",
+      "pvTitle": "Meeting minutes",
+      "pvNone": "Minutes not yet available",
+      "pvUpload": "Upload minutes (PDF)",
+      "pvReplace": "Replace minutes",
+      "pvDownload": "Download minutes",
+      "pvDelete": "Delete"
     },
     "emargement": {
       "title": "Attendance",

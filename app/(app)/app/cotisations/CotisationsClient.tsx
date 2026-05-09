@@ -135,8 +135,7 @@ export default function CotisationsClient({
 
   const [showDeclareForm, setShowDeclareForm] = useState(false);
   const [declareType, setDeclareType] = useState<"monthly" | "card">("monthly");
-  const [declareMonth, setDeclareMonth] = useState(new Date().getMonth() + 1);
-  const [declareYear, setDeclareYear] = useState(new Date().getFullYear());
+  const [declareMonths, setDeclareMonths] = useState<Set<string>>(new Set());
   const [declareMode, setDeclareMode] = useState<PaymentMode>("WAVE");
   const [declareRef, setDeclareRef] = useState("");
   const [declaring, setDeclaring] = useState(false);
@@ -169,16 +168,41 @@ export default function CotisationsClient({
   async function handleDeclare() {
     setDeclaring(true);
     setDeclareError("");
-    const endpoint = declareType === "monthly" ? "/api/cotisations/monthly" : "/api/cotisations/card";
-    const body =
-      declareType === "monthly"
-        ? { month: declareMonth, year: declareYear, paymentMode: declareMode, paymentRef: declareRef || undefined }
-        : { academicYear: summary?.academicYear, paymentMode: declareMode, paymentRef: declareRef || undefined };
 
-    const res = await fetch(endpoint, {
+    if (declareType === "card") {
+      const res = await fetch("/api/cotisations/card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ academicYear: summary?.academicYear, paymentMode: declareMode, paymentRef: declareRef || undefined }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setDeclareError(j.error ?? "Erreur.");
+      } else {
+        setShowDeclareForm(false);
+        setDeclareRef("");
+        showToast("Paiement déclaré. En attente de confirmation.");
+        await fetchSummary();
+      }
+      setDeclaring(false);
+      return;
+    }
+
+    // monthly — batch
+    const months = Array.from(declareMonths).map((key) => {
+      const [year, month] = key.split("-").map(Number);
+      return { year, month };
+    });
+    if (months.length === 0) {
+      setDeclareError("Sélectionne au moins un mois.");
+      setDeclaring(false);
+      return;
+    }
+
+    const res = await fetch("/api/cotisations/monthly/batch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ months, paymentMode: declareMode, paymentRef: declareRef || undefined }),
     });
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
@@ -186,7 +210,9 @@ export default function CotisationsClient({
     } else {
       setShowDeclareForm(false);
       setDeclareRef("");
-      showToast("Paiement déclaré. En attente de confirmation.");
+      setDeclareMonths(new Set());
+      const n = months.length;
+      showToast(n === 1 ? "Paiement déclaré. En attente de confirmation." : `${n} paiements déclarés. En attente de confirmation.`);
       await fetchSummary();
     }
     setDeclaring(false);
@@ -541,40 +567,118 @@ export default function CotisationsClient({
       ) : null}
 
       {/* Modal — déclaration */}
-      {showDeclareForm && (
+      {showDeclareForm && (() => {
+        // Construire la liste des mois disponibles (année académique)
+        const monthlyFee = summary?.membre?.category?.monthlyFee ?? 0;
+        const alreadyPaid = new Set(
+          summary?.payments
+            .filter((p) => p.status === "CONFIRMED" || p.status === "PENDING")
+            .map((p) => `${p.year}-${p.month}`) ?? []
+        );
+
+        // Mois de l'année académique + 3 mois futurs supplémentaires
+        const acYear = summary?.academicYear ?? "";
+        const [startYStr] = acYear.split("-");
+        const startY = parseInt(startYStr || String(new Date().getFullYear()), 10);
+        // Septembre année N → Août année N+1, puis 3 mois supplémentaires
+        const acMonths: { year: number; month: number }[] = [];
+        for (let i = 0; i < 15; i++) {
+          const totalMonth = 8 + i; // 9..12 = année N, 1..8 = année N+1, 9..11 = bonus
+          const year = totalMonth > 12 ? startY + Math.floor((totalMonth - 1) / 12) : startY;
+          const month = ((totalMonth - 1) % 12) + 1;
+          acMonths.push({ year, month });
+        }
+
+        const availableMonths = acMonths.filter(
+          ({ year, month }) => !alreadyPaid.has(`${year}-${month}`)
+        );
+        const totalToPay = declareMonths.size * monthlyFee;
+
+        return (
         <div style={OVERLAY}>
-          <div style={MODAL}>
+          <div style={{ ...MODAL, maxWidth: "460px" }}>
             <h3 style={{ fontSize: "15px", fontWeight: 500, margin: "0 0 18px" }}>
               {declareType === "card" ? t("takeCard") : t("declarePayment")}
             </h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {declareType === "monthly" && (
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={LABEL}>{t("month")}</label>
-                    <select
-                      value={declareMonth}
-                      onChange={(e) => setDeclareMonth(Number(e.target.value))}
-                      style={INPUT}
-                    >
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>{t(MONTH_KEYS[i])}</option>
-                      ))}
-                    </select>
+                <>
+                  <div>
+                    <label style={LABEL}>Mois à payer</label>
+                    <div style={{
+                      display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px",
+                      maxHeight: "200px", overflowY: "auto", padding: "2px",
+                    }}>
+                      {availableMonths.map(({ year, month }) => {
+                        const key = `${year}-${month}`;
+                        const checked = declareMonths.has(key);
+                        const isOverdue = summary?.overdueMonths.some(
+                          (m) => m.year === year && m.month === month
+                        );
+                        const now = new Date();
+                        const isFuture = year > now.getFullYear() ||
+                          (year === now.getFullYear() && month > now.getMonth() + 1);
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => {
+                              setDeclareMonths((prev) => {
+                                const next = new Set(prev);
+                                next.has(key) ? next.delete(key) : next.add(key);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              padding: "7px 6px",
+                              borderRadius: "6px",
+                              border: `1.5px solid ${checked ? "var(--color-accent)" : "var(--color-border-tertiary)"}`,
+                              background: checked ? "rgba(29,158,117,0.08)" : "var(--color-background-secondary)",
+                              cursor: "pointer",
+                              textAlign: "center",
+                              fontSize: "11.5px",
+                              fontWeight: checked ? 600 : 400,
+                              color: checked ? "var(--color-accent)" : isOverdue ? "#C04A00" : isFuture ? "var(--color-text-secondary)" : "var(--color-text-primary)",
+                              position: "relative",
+                            }}
+                          >
+                            {t(MONTH_KEYS[month - 1])}
+                            {isOverdue && !checked && (
+                              <span style={{ display: "block", fontSize: "9px", color: "#C04A00", marginTop: "1px" }}>retard</span>
+                            )}
+                            {isFuture && !checked && (
+                              <span style={{ display: "block", fontSize: "9px", color: "var(--color-text-tertiary)", marginTop: "1px" }}>{year}</span>
+                            )}
+                            {checked && (
+                              <i className="ti ti-check" style={{ position: "absolute", top: "3px", right: "4px", fontSize: "11px", color: "var(--color-accent)" }} />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {availableMonths.length === 0 && (
+                      <p style={{ fontSize: "12px", color: "var(--color-text-tertiary)", margin: "8px 0 0" }}>
+                        Tous les mois sont déjà réglés ou en attente.
+                      </p>
+                    )}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={LABEL}>{t("year")}</label>
-                    <input
-                      type="number"
-                      value={declareYear}
-                      onChange={(e) => setDeclareYear(Number(e.target.value))}
-                      style={INPUT}
-                      min={2020}
-                      max={2099}
-                    />
-                  </div>
-                </div>
+                  {declareMonths.size > 0 && monthlyFee > 0 && (
+                    <div style={{
+                      background: "var(--color-background-secondary)",
+                      borderRadius: "var(--border-radius-md)",
+                      padding: "10px 12px",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>
+                        {declareMonths.size} mois × {monthlyFee.toLocaleString("fr-FR")} FCFA
+                      </span>
+                      <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)" }}>
+                        {totalToPay.toLocaleString("fr-FR")} FCFA
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
 
               <div>
@@ -612,20 +716,21 @@ export default function CotisationsClient({
             </div>
 
             <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-              <button onClick={() => { setShowDeclareForm(false); setDeclareError(""); }} style={BTN_SEC}>
+              <button onClick={() => { setShowDeclareForm(false); setDeclareError(""); setDeclareMonths(new Set()); }} style={BTN_SEC}>
                 {tc("cancel")}
               </button>
               <button
                 onClick={handleDeclare}
-                disabled={declaring}
-                style={{ ...BTN_PRI, opacity: declaring ? 0.6 : 1 }}
+                disabled={declaring || (declareType === "monthly" && declareMonths.size === 0)}
+                style={{ ...BTN_PRI, opacity: (declaring || (declareType === "monthly" && declareMonths.size === 0)) ? 0.5 : 1 }}
               >
-                {declaring ? "…" : tc("confirm")}
+                {declaring ? "…" : declareType === "monthly" && declareMonths.size > 1 ? `Déclarer ${declareMonths.size} mois` : tc("confirm")}
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Modal — rejet */}
       {rejectingId && (
